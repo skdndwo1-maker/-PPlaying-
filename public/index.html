@@ -677,10 +677,6 @@
     <div class="info-card">
       <div class="card-label">
         <div class="card-label-dot"></div>연락망 인텔리전스
-        <button id="contact-search-btn" onclick="fetchContacts()" style="margin-left:auto;font-size:0.68rem;font-weight:500;padding:0.25rem 0.7rem;background:var(--gold);color:#fff;border:none;border-radius:100px;cursor:pointer;display:flex;align-items:center;gap:0.3rem;">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          실시간 서치
-        </button>
       </div>
       <div class="contact-grid" id="contact-info"></div>
     </div>
@@ -917,15 +913,27 @@ function renderResult(data, originalQuery) {
     '공식 SNS': '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
   };
   const contactEl = document.getElementById('contact-info');
-  contactEl.innerHTML = (data.contacts || []).map(c => `
-    <div class="contact-item">
+  contactEl.innerHTML = (data.contacts || []).map(c => {
+    const isUrl = c.val && (c.val.startsWith('http') || c.val.startsWith('www'));
+    const isEmail = c.val && c.val.includes('@');
+    let linkHtml = '';
+    if (isUrl) {
+      const url = c.val.startsWith('http') ? c.val : 'https://' + c.val;
+      linkHtml = `<a href="${url}" target="_blank" rel="noopener" style="font-size:0.82rem;color:var(--black);text-decoration:none;border-bottom:0.5px solid var(--mid);padding-bottom:1px;word-break:break-all;">${c.val}</a>`;
+    } else if (isEmail) {
+      linkHtml = `<a href="mailto:${c.val}" style="font-size:0.82rem;color:var(--black);text-decoration:none;border-bottom:0.5px solid var(--mid);padding-bottom:1px;">${c.val}</a>`;
+    } else {
+      linkHtml = `<span class="contact-val">${c.val}</span>`;
+    }
+    return `<div class="contact-item">
       <div class="contact-icon">${contactIcons[c.type] || contactIcons['공식 SNS']}</div>
       <div style="flex:1;">
         <div class="contact-type">${c.type}</div>
-        <div class="contact-val">${c.val}</div>
-        <div class="contact-confidence"><div class="conf-dot"></div>${c.confidence} · AI 추론</div>
+        ${linkHtml}
+        <div class="contact-confidence"><div class="conf-dot" style="background:${c.confidence === '확인됨' ? '#16a34a' : '#c9a84c'};"></div>${c.confidence}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   // Show result
   document.getElementById('result-page').style.display = 'block';
