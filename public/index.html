@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPlaying — 브랜드 서치</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --black: #0e0e0e;
+    --white: #f8f7f4;
+    --gold: #c9a84c;
+    --gold-light: #f5ecd4;
+    --mid: #6b6b6b;
+    --light: #e8e6e1;
+    --card: #ffffff;
+    --surface: #f2f1ee;
+    --max-w: 1100px;
+  }
+  html, body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--white); color: var(--black); min-height: 100vh; }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(248,247,244,0.95); backdrop-filter: blur(10px);
+    border-bottom: 0.5px solid var(--light);
+    padding: 0 2rem;
+  }
+  .nav-inner {
+    max-width: var(--max-w); margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 0;
+  }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 600; letter-spacing: -0.02em; }
+  .logo span { color: var(--gold); }
+  .logo .pp { font-style: normal; }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-tag { font-size: 0.72rem; font-weight: 500; color: var(--mid); padding: 0.3rem 0.7rem; border: 0.5px solid var(--light); border-radius: 100px; }
+
+  /* MAIN SEARCH PAGE */
+  #search-page {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 3rem 2rem 2.5rem; width: 100%;
+    transition: padding 0.4s ease;
+  }
+  #search-page.has-result {
+    padding: 2rem 2rem 0;
+  }
+  #search-page.has-result .search-eyebrow,
+  #search-page.has-result .search-title,
+  #search-page.has-result .search-subtitle,
+  #search-page.has-result .quick-examples {
+    display: none;
+  }
+  /* 검색창 래퍼 - 결과 페이지와 동일한 너비 */
+  .search-page-inner {
+    width: 100%; max-width: var(--max-w);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  #search-page.has-result .search-page-inner {
+    align-items: stretch;
+  }
+  .search-eyebrow {
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .search-eyebrow::before, .search-eyebrow::after { content: '—'; opacity: 0.4; }
+  .search-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 500;
+    letter-spacing: -0.03em; text-align: center; line-height: 1.15;
+    margin-bottom: 0.75rem;
+  }
+  .search-title em { font-style: normal; color: var(--gold); }
+  .search-subtitle { font-size: 0.9rem; color: var(--mid); font-weight: 300; text-align: center; margin-bottom: 2.5rem; }
+
+  /* SEARCH BOX */
+  .search-box {
+    width: 100%; max-width: 680px;
+    background: var(--card);
+    border: 0.5px solid rgba(0,0,0,0.12);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.06);
+  }
+  #search-page.has-result .search-box {
+    max-width: 100%;
+    border-radius: 14px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.04);
+  }
+  .input-row {
+    display: flex; align-items: center; gap: 0.75rem;
+    background: var(--white); border: 0.5px solid rgba(0,0,0,0.1);
+    border-radius: 12px; padding: 0.9rem 1.1rem; margin-bottom: 1rem;
+  }
+  .input-row svg { width: 18px; height: 18px; stroke: var(--mid); fill: none; stroke-width: 1.5; flex-shrink: 0; }
+  .input-row input {
+    flex: 1; border: none; background: transparent; outline: none;
+    font-family: 'Pretendard', -apple-system, sans-serif; font-size: 1rem; font-weight: 400; color: var(--black);
+  }
+  .input-row input::placeholder { color: #aaa; }
+
+  /* INDUSTRY SELECTOR */
+  .industry-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mid); margin-bottom: 0.6rem; }
+  .industry-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.25rem; }
+  .industry-chip {
+    font-size: 0.78rem; font-weight: 400; padding: 0.4rem 0.9rem;
+    border: 0.5px solid rgba(0,0,0,0.15); border-radius: 100px;
+    cursor: pointer; transition: all 0.15s; background: transparent; color: var(--black);
+    font-family: 'Pretendard', -apple-system, sans-serif;
+  }
+  .industry-chip:hover { border-color: var(--black); }
+  .industry-chip.active { background: var(--black); color: var(--white); border-color: var(--black); }
+  .industry-chip.gold-active { background: var(--gold); color: #fff; border-color: var(--gold); }
+
+  /* OTHER INDUSTRY INPUT */
+  #other-input-wrap {
+    display: none; margin-top: 0.6rem; margin-bottom: 0.6rem;
+    animation: fadeOther 0.2s ease;
+  }
+  @keyframes fadeOther { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  #other-input-wrap .other-row {
+    display: flex; align-items: center; gap: 0.6rem;
+    background: var(--gold-light); border: 0.5px solid var(--gold);
+    border-radius: 10px; padding: 0.65rem 1rem;
+  }
+  #other-input-wrap svg { width: 14px; height: 14px; stroke: var(--gold); fill: none; stroke-width: 1.8; flex-shrink: 0; }
+  #other-industry-input {
+    flex: 1; border: none; background: transparent; outline: none;
+    font-family: 'Pretendard', -apple-system, sans-serif; font-size: 0.85rem; color: var(--black);
+  }
+  #other-industry-input::placeholder { color: #b89860; }
+
+  .search-btn {
+    width: 100%; padding: 0.95rem;
+    background: var(--black); color: var(--white);
+    border: none; border-radius: 12px; cursor: pointer;
+    font-family: 'Pretendard', -apple-system, sans-serif; font-size: 0.92rem; font-weight: 500;
+    letter-spacing: 0.02em; transition: opacity 0.2s, transform 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  }
+  .search-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .search-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .quick-examples { margin-top: 1.5rem; text-align: center; }
+  .quick-label { font-size: 0.72rem; color: var(--mid); margin-bottom: 0.6rem; letter-spacing: 0.03em; }
+  .quick-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; }
+  .quick-chip {
+    font-size: 0.75rem; padding: 0.3rem 0.75rem;
+    background: var(--surface); border: 0.5px solid var(--light);
+    border-radius: 100px; cursor: pointer; color: var(--black);
+    transition: background 0.15s;
+  }
+  .quick-chip:hover { background: var(--light); }
+
+  /* RESULT PAGE */
+  #result-page { display: none; padding: 0 2rem 4rem; max-width: var(--max-w); margin: 0 auto; }
+
+  .result-divider {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0 0 2rem;
+  }
+  .result-divider-line { flex: 1; height: 0.5px; background: var(--light); }
+  .result-divider-label {
+    font-size: 0.68rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold); white-space: nowrap;
+  }
+
+  /* RESULT HEADER */
+  .result-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: 0 0 1.5rem; border-bottom: 0.5px solid var(--light); margin-bottom: 2rem;
+  }
+  .result-brand-info { display: flex; align-items: center; gap: 1.25rem; }
+  .brand-avatar {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: var(--black); color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Pretendard', -apple-system, sans-serif; font-size: 1.4rem; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .result-brand-name { font-family: 'Pretendard', -apple-system, sans-serif; font-size: 1.8rem; font-weight: 500; letter-spacing: -0.02em; }
+  .result-brand-sub { font-size: 0.82rem; color: var(--mid); margin-top: 0.25rem; }
+  .result-chips { display: flex; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap; }
+  .r-chip { font-size: 0.7rem; font-weight: 500; padding: 0.25rem 0.65rem; border-radius: 100px; }
+  .chip-industry { background: #e8f0fe; color: #1a56db; }
+  .chip-type { background: #e6f4ea; color: #1e7e34; }
+  .chip-market { background: #fef9e7; color: #b45309; }
+  .back-btn {
+    font-size: 0.82rem; padding: 0.55rem 1.1rem;
+    border: 0.5px solid rgba(0,0,0,0.2); border-radius: 100px; cursor: pointer;
+    background: transparent; font-family: 'Pretendard', -apple-system, sans-serif;
+    color: var(--black); transition: border-color 0.15s;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .back-btn:hover { border-color: var(--black); }
+
+  /* METRICS ROW */
+  .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .metric-card {
+    background: var(--surface); border-radius: 14px; padding: 1.1rem 1.25rem;
+  }
+  .metric-label { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mid); margin-bottom: 0.4rem; }
+  .metric-val { font-family: 'Pretendard', -apple-system, sans-serif; font-size: 1.5rem; font-weight: 500; color: var(--black); }
+  .metric-sub { font-size: 0.72rem; color: var(--mid); margin-top: 0.15rem; }
+
+  /* CONTENT GRID */
+  .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .content-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .content-grid.full { grid-template-columns: 1fr; }
+
+  .info-card {
+    background: var(--card); border: 0.5px solid var(--light);
+    border-radius: 16px; padding: 1.5rem;
+  }
+  .card-label {
+    font-size: 0.68rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--mid); margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .card-label-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+  .info-rows {}
+  .info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.6rem 0; border-bottom: 0.5px solid var(--light); }
+  .info-row:last-child { border-bottom: none; }
+  .ir-key { font-size: 0.78rem; color: var(--mid); font-weight: 400; }
+  .ir-val { font-size: 0.85rem; font-weight: 500; color: var(--black); text-align: right; max-width: 60%; }
+
+  /* STORY CARD */
+  .story-text { font-size: 0.88rem; line-height: 1.85; color: #444; font-weight: 300; }
+  .story-text p { margin-bottom: 0.75rem; }
+  .story-text p:last-child { margin-bottom: 0; }
+
+  /* BRANDING STRUCTURE */
+  .brand-structure { }
+  .structure-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 0.5px solid var(--light); }
+  .structure-item:last-child { border-bottom: none; }
+  .structure-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); margin-top: 0.35rem; flex-shrink: 0; }
+  .structure-key { font-size: 0.78rem; font-weight: 500; color: var(--black); min-width: 90px; }
+  .structure-val { font-size: 0.8rem; color: var(--mid); line-height: 1.5; }
+
+  /* RELATED BRANDS */
+  .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+  .related-card {
+    background: var(--surface); border-radius: 12px; padding: 1rem;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .related-card:hover { background: var(--light); }
+  .related-avatar {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--black); color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Pretendard', -apple-system, sans-serif; font-size: 0.85rem;
+    margin-bottom: 0.6rem;
+  }
+  .related-name { font-size: 0.85rem; font-weight: 500; margin-bottom: 0.2rem; }
+  .related-sub { font-size: 0.72rem; color: var(--mid); }
+
+  /* CONTACT SECTION */
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .contact-item {
+    background: var(--surface); border-radius: 10px; padding: 0.85rem 1rem;
+    display: flex; align-items: flex-start; gap: 0.65rem;
+  }
+  .contact-icon { width: 28px; height: 28px; border-radius: 7px; background: var(--black); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .contact-icon svg { width: 13px; height: 13px; stroke: var(--white); fill: none; stroke-width: 1.8; }
+  .contact-type { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--mid); margin-bottom: 0.2rem; }
+  .contact-val { font-size: 0.82rem; font-weight: 400; color: var(--black); }
+  .contact-confidence {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.65rem; color: #16a34a; margin-top: 0.15rem;
+  }
+  .conf-dot { width: 5px; height: 5px; border-radius: 50%; background: #16a34a; }
+
+  /* LOADING */
+  #loading-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(248,247,244,0.92); backdrop-filter: blur(8px);
+    z-index: 200; align-items: center; justify-content: center; flex-direction: column;
+  }
+  .loading-logo { font-family: 'Pretendard', -apple-system, sans-serif; font-size: 1.5rem; font-weight: 500; margin-bottom: 2rem; }
+  .loading-logo span { color: var(--gold); }
+  .loading-bar-track { width: 240px; height: 2px; background: var(--light); border-radius: 2px; overflow: hidden; }
+  .loading-bar-fill { height: 100%; background: var(--gold); border-radius: 2px; animation: loadfill 2.2s ease forwards; }
+  @keyframes loadfill { from { width: 0%; } to { width: 100%; } }
+  .loading-status { font-size: 0.8rem; color: var(--mid); margin-top: 1rem; animation: blink 1.2s infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* STREAMING TEXT */
+  .stream-text { white-space: pre-wrap; }
+  .cursor { display: inline-block; width: 2px; height: 1em; background: var(--gold); animation: cursorBlink 0.7s infinite; vertical-align: text-bottom; }
+  @keyframes cursorBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  /* FADE IN */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeUp 0.5s ease both; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--light); border-radius: 2px; }
+
+  /* PDF DOWNLOAD BTN */
+  .pdf-btn {
+    font-size: 0.78rem; font-weight: 500; padding: 0.5rem 1.1rem;
+    background: var(--black); color: var(--white);
+    border: none; border-radius: 100px; cursor: pointer;
+    display: flex; align-items: center; gap: 0.4rem;
+    transition: opacity 0.2s;
+  }
+  .pdf-btn:hover { opacity: 0.75; }
+  .pdf-btn svg { width: 13px; height: 13px; stroke: var(--white); fill: none; stroke-width: 2; }
+
+  /* DEEP ANALYSIS BTN */
+  .deep-btn {
+    font-size: 0.78rem; font-weight: 500; padding: 0.5rem 1.1rem;
+    background: var(--gold); color: #fff;
+    border: none; border-radius: 100px; cursor: pointer;
+    display: flex; align-items: center; gap: 0.4rem;
+    transition: opacity 0.2s;
+  }
+  .deep-btn:hover { opacity: 0.8; }
+  .deep-btn svg { width: 13px; height: 13px; stroke: #fff; fill: none; stroke-width: 2; }
+
+  /* DEEP PAGE */
+  #deep-page { display: none; padding: 0 2rem 4rem; max-width: var(--max-w); margin: 0 auto; }
+  .deep-tabs {
+    display: flex; gap: 2px; border-bottom: 0.5px solid var(--light);
+    margin-bottom: 2rem; overflow-x: auto;
+  }
+  .deep-tab {
+    background: none; border: none; border-bottom: 2px solid transparent;
+    padding: 0.75rem 1.25rem; font-size: 0.85rem; font-weight: 500;
+    color: var(--mid); cursor: pointer; white-space: nowrap;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .deep-tab:hover { color: var(--black); }
+  .deep-tab.active { color: var(--black); border-bottom-color: var(--black); }
+  .deep-panel { display: none; }
+  .deep-panel.active { display: block; }
+
+  /* HISTORY */
+  .history-phase { margin-bottom: 2rem; }
+  .phase-label {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--mid); background: var(--surface); border-radius: 6px;
+    padding: 0.4rem 0.8rem; display: inline-block; margin-bottom: 1rem;
+  }
+  .history-section { margin-bottom: 1.5rem; }
+  .history-section h3 { font-size: 0.95rem; font-weight: 600; color: var(--black); margin-bottom: 0.5rem; }
+  .history-section p { font-size: 0.85rem; color: #555; line-height: 1.8; margin-bottom: 0.5rem; }
+  .history-quote {
+    border-left: 3px solid var(--gold); padding: 0.75rem 1rem;
+    margin: 0.75rem 0; background: var(--gold-light); border-radius: 0 8px 8px 0;
+    font-size: 0.85rem; color: #5a4010; font-style: normal;
+  }
+
+  /* PORTFOLIO */
+  .portfolio-root {
+    background: var(--surface); border: 0.5px solid var(--light);
+    border-radius: 12px; padding: 0.85rem 1.25rem; text-align: center;
+    margin: 0 auto 1rem; max-width: 220px;
+  }
+  .portfolio-root-name { font-size: 0.9rem; font-weight: 600; }
+  .portfolio-root-sub { font-size: 0.72rem; color: var(--mid); margin-top: 0.2rem; }
+  .portfolio-conn { text-align: center; font-size: 1rem; color: var(--mid); margin: 0.3rem 0; }
+  .portfolio-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+  .portfolio-col-title {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 0.5rem; padding: 0.3rem 0.5rem; border-radius: 5px; text-align: center;
+  }
+  .col-ct .portfolio-col-title { background: #E1F5EE; color: #085041; }
+  .col-ca .portfolio-col-title { background: #FAEEDA; color: #633806; }
+  .col-cb .portfolio-col-title { background: #E6F1FB; color: #0C447C; }
+  .col-cc .portfolio-col-title { background: #FAECE7; color: #712B13; }
+  .col-cn .portfolio-col-title { background: #EAF3DE; color: #27500A; }
+  .col-cp .portfolio-col-title { background: #EEEDFE; color: #3C3489; }
+  .col-cg .portfolio-col-title { background: #F1EFE8; color: #444441; }
+  .portfolio-item {
+    border-radius: 6px; overflow: hidden;
+    border: 0.5px solid var(--light); margin-bottom: 0.4rem; cursor: pointer;
+  }
+  .portfolio-item:hover { border-color: var(--mid); }
+  .portfolio-item-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 5px 8px; gap: 4px;
+  }
+  .portfolio-item-name { font-size: 0.78rem; font-weight: 600; color: var(--black); }
+  .portfolio-item-arrow { font-size: 0.65rem; color: var(--mid); transition: transform 0.12s; }
+  .portfolio-item.open .portfolio-item-arrow { transform: rotate(180deg); }
+  .portfolio-item-body {
+    display: none; padding: 5px 8px 7px;
+    font-size: 0.72rem; color: var(--mid); line-height: 1.5;
+    border-top: 0.5px solid var(--light);
+  }
+  .portfolio-item.open .portfolio-item-body { display: block; }
+  .p-tag {
+    display: inline-block; font-size: 0.62rem; padding: 1px 5px;
+    border-radius: 7px; margin-bottom: 3px; font-weight: 600;
+  }
+  .tag-ct { background: #9FE1CB; color: #085041; }
+  .tag-ca { background: #FAC775; color: #633806; }
+  .tag-cb { background: #B5D4F4; color: #0C447C; }
+  .tag-cc { background: #F5C4B3; color: #712B13; }
+  .tag-cn { background: #C0DD97; color: #27500A; }
+  .tag-cp { background: #CECBF6; color: #3C3489; }
+  .tag-cg { background: #D3D1C7; color: #444441; }
+
+  /* BRANDING LAYERS */
+  .brand-layer {
+    border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.6rem;
+    border: 0.5px solid var(--light);
+  }
+  .brand-layer:hover { filter: brightness(0.97); }
+  .layer-num { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.3rem; }
+  .layer-brands { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .layer-desc { font-size: 0.78rem; line-height: 1.6; }
+  .bl1 { background: #EEEDFE; border-color: #AFA9EC; } .bl1 .layer-num { color: #534AB7; } .bl1 .layer-brands { color: #3C3489; } .bl1 .layer-desc { color: #534AB7; }
+  .bl2 { background: #FAECE7; border-color: #F0997B; } .bl2 .layer-num { color: #993C1D; } .bl2 .layer-brands { color: #712B13; } .bl2 .layer-desc { color: #993C1D; }
+  .bl3 { background: #E1F5EE; border-color: #5DCAA5; } .bl3 .layer-num { color: #0F6E56; } .bl3 .layer-brands { color: #085041; } .bl3 .layer-desc { color: #0F6E56; }
+  .bl4 { background: #FAEEDA; border-color: #EF9F27; } .bl4 .layer-num { color: #854F0B; } .bl4 .layer-brands { color: #633806; } .bl4 .layer-desc { color: #854F0B; }
+  .bl5 { background: #E6F1FB; border-color: #85B7EB; } .bl5 .layer-num { color: #185FA5; } .bl5 .layer-brands { color: #0C447C; } .bl5 .layer-desc { color: #185FA5; }
+  .bl6 { background: #F1EFE8; border-color: #B4B2A9; } .bl6 .layer-num { color: #5F5E5A; } .bl6 .layer-brands { color: #444441; } .bl6 .layer-desc { color: #5F5E5A; }
+  .layer-arrow { text-align: center; font-size: 1.1rem; color: var(--mid); margin: 0.2rem 0; line-height: 1; }
+
+  /* TIMELINE */
+  .tl-phase-label {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--mid); background: var(--surface); padding: 0.4rem 0.8rem;
+    border-radius: 6px; display: inline-block; margin: 1rem 0 0.5rem;
+  }
+  .tl-row { display: flex; gap: 0; align-items: flex-start; margin-bottom: 4px; }
+  .tl-year { width: 80px; flex-shrink: 0; font-size: 0.72rem; color: var(--mid); text-align: right; padding-right: 10px; padding-top: 10px; line-height: 1.3; }
+  .tl-spine { width: 20px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
+  .tl-dot { border-radius: 50%; border: 1.5px solid var(--mid); background: var(--white); flex-shrink: 0; margin-top: 10px; }
+  .tl-right { flex: 1; min-width: 0; padding-bottom: 4px; padding-left: 8px; }
+  .tl-card { background: var(--surface); border-radius: 8px; padding: 0.5rem 0.75rem; margin-bottom: 2px; }
+  .tl-card.big { background: var(--card); border: 0.5px solid var(--light); }
+  .tl-card-title { font-size: 0.82rem; font-weight: 600; color: var(--black); margin: 3px 0 2px; }
+  .tl-card-desc { font-size: 0.75rem; color: var(--mid); line-height: 1.5; }
+  .tl-tags { margin-bottom: 3px; display: flex; flex-wrap: wrap; gap: 2px; }
+  .tl-tag { font-size: 0.62rem; padding: 1px 6px; border-radius: 7px; font-weight: 600; display: inline-block; }
+
+  /* DETAIL BTN */
+  .detail-btn {
+    font-size: 0.7rem; font-weight: 500; padding: 0.3rem 0.75rem;
+    background: transparent; color: var(--gold);
+    border: 0.5px solid var(--gold); border-radius: 100px; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .detail-btn:hover { background: var(--gold); color: #fff; }
+
+  /* DETAIL / RELATED PAGE */
+  #detail-page, #related-page {
+    display: none; padding: 0 2rem 4rem; max-width: var(--max-w); margin: 0 auto;
+  }
+  .subpage-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 2rem 0 1.5rem; border-bottom: 0.5px solid var(--light); margin-bottom: 2rem;
+  }
+  .subpage-title { font-family: 'Pretendard', -apple-system, sans-serif; font-size: 1.4rem; font-weight: 500; letter-spacing: -0.02em; }
+  .subpage-sub { font-size: 0.8rem; color: var(--mid); margin-top: 0.25rem; }
+  .back-to-result {
+    font-size: 0.8rem; padding: 0.5rem 1rem;
+    border: 0.5px solid rgba(0,0,0,0.2); border-radius: 100px; cursor: pointer;
+    background: transparent; font-family: 'Pretendard', -apple-system, sans-serif; color: var(--black);
+    display: flex; align-items: center; gap: 0.4rem; transition: border-color 0.15s;
+  }
+  .back-to-result:hover { border-color: var(--black); }
+
+  .summary-card {
+    background: var(--gold-light); border: 0.5px solid var(--gold);
+    border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+    font-size: 0.9rem; line-height: 1.75; color: #5a4010;
+  }
+  .section-title-sm {
+    font-size: 0.68rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--mid); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .case-list { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .case-card {
+    background: var(--card); border: 0.5px solid var(--light); border-radius: 12px; padding: 1.1rem;
+  }
+  .case-year { font-size: 0.65rem; font-weight: 500; color: var(--gold); letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+  .case-title { font-size: 0.85rem; font-weight: 500; color: var(--black); margin-bottom: 0.4rem; }
+  .case-desc { font-size: 0.78rem; color: var(--mid); line-height: 1.6; }
+
+  .article-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .article-item {
+    background: var(--card); border: 0.5px solid var(--light); border-radius: 12px;
+    padding: 1rem 1.25rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+  }
+  .article-meta { font-size: 0.68rem; color: var(--gold); font-weight: 500; margin-bottom: 0.3rem; }
+  .article-title { font-size: 0.88rem; font-weight: 500; color: var(--black); margin-bottom: 0.3rem; }
+  .article-desc { font-size: 0.78rem; color: var(--mid); line-height: 1.5; }
+  .article-link {
+    font-size: 0.72rem; font-weight: 500; padding: 0.35rem 0.8rem;
+    border: 0.5px solid rgba(0,0,0,0.15); border-radius: 100px;
+    color: var(--black); text-decoration: none; white-space: nowrap;
+    transition: border-color 0.15s; flex-shrink: 0;
+  }
+  .article-link:hover { border-color: var(--black); }
+
+  .link-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .link-item {
+    background: var(--surface); border-radius: 10px; padding: 0.85rem 1rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .link-label { font-size: 0.82rem; font-weight: 500; color: var(--black); }
+  .link-desc { font-size: 0.72rem; color: var(--mid); margin-top: 0.15rem; }
+  .link-go {
+    font-size: 0.72rem; padding: 0.3rem 0.7rem;
+    border: 0.5px solid rgba(0,0,0,0.15); border-radius: 100px;
+    color: var(--black); text-decoration: none; flex-shrink: 0;
+    transition: border-color 0.15s;
+  }
+  .link-go:hover { border-color: var(--black); }
+
+  /* SUBPAGE LOADING */
+  .subpage-loading {
+    display: flex; align-items: center; justify-content: center;
+    padding: 4rem; flex-direction: column; gap: 1rem;
+  }
+  .subpage-loading-bar { width: 180px; height: 2px; background: var(--light); border-radius: 2px; overflow: hidden; }
+  .subpage-loading-fill { height: 100%; background: var(--gold); animation: loadfill 2s ease infinite; }
+  .subpage-loading-text { font-size: 0.8rem; color: var(--mid); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo"><span class="pp">PP</span>laying<span>.</span></div>
+    <div class="nav-right">
+      <div class="nav-tag">AI 브랜드 인텔리전스</div>
+    </div>
+  </div>
+</nav>
+
+<!-- SEARCH PAGE -->
+<div id="search-page">
+  <div class="search-page-inner">
+  <div class="search-eyebrow">Brand Intelligence Search</div>
+  <h1 class="search-title">브랜드의 <em>모든 것</em>을<br>단 하나의 검색으로</h1>
+  <p class="search-subtitle">브랜드명을 입력하고 산업군을 선택하면 AI가 심층 분석 리포트를 생성합니다</p>
+
+  <div class="search-box">
+    <div class="input-row">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="brand-input" type="text" placeholder="브랜드명을 입력하세요 (예: 나이키, 삼성, 샤넬...)" />
+    </div>
+
+    <div class="industry-label">산업군 선택</div>
+    <div class="industry-chips" id="industry-chips">
+      <button class="industry-chip active" data-val="전체">전체</button>
+      <button class="industry-chip" data-val="의류/패션">의류/패션</button>
+      <button class="industry-chip" data-val="뷰티/코스메틱">뷰티/코스메틱</button>
+      <button class="industry-chip" data-val="전자제품/IT">전자제품/IT</button>
+      <button class="industry-chip" data-val="식음료/F&B">식음료/F&B</button>
+      <button class="industry-chip" data-val="자동차">자동차</button>
+      <button class="industry-chip" data-val="명품/럭셔리">명품/럭셔리</button>
+      <button class="industry-chip" data-val="스포츠/아웃도어">스포츠/아웃도어</button>
+      <button class="industry-chip" data-val="유통/리테일">유통/리테일</button>
+      <button class="industry-chip" data-val="금융/핀테크">금융/핀테크</button>
+      <button class="industry-chip" data-val="헬스케어">헬스케어</button>
+      <button class="industry-chip" data-val="미디어/엔터">미디어/엔터</button>
+      <button class="industry-chip" data-val="기타" id="chip-other">기타</button>
+    </div>
+    <div id="other-input-wrap">
+      <div class="other-row">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <input id="other-industry-input" type="text" placeholder="산업군을 직접 입력하세요 (예: 항공, 부동산, 교육...)" />
+      </div>
+    </div>
+
+    <button class="search-btn" id="search-btn" onclick="startSearch()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      브랜드 분석 시작
+    </button>
+  </div>
+
+  <div class="quick-examples">
+    <div class="quick-label">빠른 검색 예시</div>
+    <div class="quick-chips">
+      <span class="quick-chip" onclick="quickSearch('Nike', '스포츠/아웃도어')">Nike</span>
+      <span class="quick-chip" onclick="quickSearch('샤넬', '명품/럭셔리')">샤넬</span>
+      <span class="quick-chip" onclick="quickSearch('삼성전자', '전자제품/IT')">삼성전자</span>
+      <span class="quick-chip" onclick="quickSearch('아모레퍼시픽', '뷰티/코스메틱')">아모레퍼시픽</span>
+      <span class="quick-chip" onclick="quickSearch('Tesla', '자동차')">Tesla</span>
+      <span class="quick-chip" onclick="quickSearch('스타벅스', '식음료/F&B')">스타벅스</span>
+    </div>
+  </div>
+  </div><!-- /search-page-inner -->
+</div>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="loading-logo">PPlaying<span>.</span></div>
+  <div class="loading-bar-track"><div class="loading-bar-fill" id="loading-bar"></div></div>
+  <div class="loading-status" id="loading-status">AI가 브랜드 데이터를 분석하는 중...</div>
+</div>
+
+<!-- RESULT PAGE -->
+<div id="result-page">
+  <div class="result-divider">
+    <div class="result-divider-line"></div>
+    <div class="result-divider-label">분석 결과</div>
+    <div class="result-divider-line"></div>
+  </div>
+  <div class="result-header">
+    <div class="result-brand-info">
+      <div class="brand-avatar" id="result-avatar">B</div>
+      <div>
+        <div class="result-brand-name" id="result-brand-name">브랜드명</div>
+        <div class="result-brand-sub" id="result-brand-sub">산업군 · 국가</div>
+        <div class="result-chips" id="result-chips"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.6rem;align-items:center;">
+      <button class="deep-btn" onclick="openDeep()">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        심층 분석
+      </button>
+      <button class="pdf-btn" onclick="downloadPDF()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        내려받기
+      </button>
+    </div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="metrics-row" id="metrics-row">
+    <div class="metric-card"><div class="metric-label">연간 매출</div><div class="metric-val" id="m-revenue">—</div><div class="metric-sub" id="m-revenue-sub"></div></div>
+    <div class="metric-card"><div class="metric-label">순이익</div><div class="metric-val" id="m-profit">—</div><div class="metric-sub" id="m-profit-sub"></div></div>
+    <div class="metric-card"><div class="metric-label">설립 연도</div><div class="metric-val" id="m-founded">—</div><div class="metric-sub" id="m-founded-sub"></div></div>
+    <div class="metric-card"><div class="metric-label">사업 형태</div><div class="metric-val" id="m-type">—</div><div class="metric-sub" id="m-type-sub"></div></div>
+  </div>
+
+  <!-- BASIC INFO + BUSINESS -->
+  <div class="content-grid" style="margin-bottom:1.25rem;">
+    <div class="info-card">
+      <div class="card-label"><div class="card-label-dot"></div>기본 정보</div>
+      <div class="info-rows" id="basic-info"></div>
+    </div>
+    <div class="info-card">
+      <div class="card-label"><div class="card-label-dot"></div>사업 방향 & 전략</div>
+      <div class="story-text" id="business-direction" style="font-size:0.85rem;"></div>
+    </div>
+  </div>
+
+  <!-- BRAND STORY -->
+  <div class="content-grid full" style="margin-bottom:1.25rem;">
+    <div class="info-card">
+      <div class="card-label"><div class="card-label-dot"></div>브랜드 스토리</div>
+      <div class="story-text" id="brand-story"></div>
+    </div>
+  </div>
+
+  <!-- BRANDING STRUCTURE + RELATED -->
+  <div class="content-grid" style="margin-bottom:1.25rem;">
+    <div class="info-card">
+      <div class="card-label"><div class="card-label-dot"></div>브랜딩 구조</div>
+      <div class="brand-structure" id="branding-structure"></div>
+    </div>
+    <div class="info-card">
+      <div class="card-label"><div class="card-label-dot"></div>관련 브랜드 레퍼런스</div>
+      <div class="related-grid" id="related-brands"></div>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="content-grid full">
+    <div class="info-card">
+      <div class="card-label"><div class="card-label-dot"></div>연락망 인텔리전스</div>
+      <div class="contact-grid" id="contact-info"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL PAGE -->
+<div id="detail-page">
+  <div class="result-divider">
+    <div class="result-divider-line"></div>
+    <div class="result-divider-label" id="detail-divider-label">상세 분석</div>
+    <div class="result-divider-line"></div>
+  </div>
+  <div class="subpage-header">
+    <div>
+      <div class="subpage-title" id="detail-title"></div>
+      <div class="subpage-sub" id="detail-sub"></div>
+    </div>
+    <button class="back-to-result" onclick="showResultPage()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+      분석 결과로
+    </button>
+  </div>
+  <div id="detail-content"></div>
+</div>
+
+<!-- RELATED PAGE -->
+<div id="related-page">
+  <div class="result-divider">
+    <div class="result-divider-line"></div>
+    <div class="result-divider-label">관련 브랜드</div>
+    <div class="result-divider-line"></div>
+  </div>
+  <div class="subpage-header">
+    <div>
+      <div class="subpage-title" id="related-title"></div>
+      <div class="subpage-sub" id="related-sub"></div>
+    </div>
+    <button class="back-to-result" onclick="showResultPage()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+      분석 결과로
+    </button>
+  </div>
+  <div id="related-content"></div>
+</div>
+
+<script>
+let selectedIndustry = '전체';
+const loadingMessages = [
+  'AI가 브랜드 데이터를 수집하는 중...',
+  '재무 정보를 분석하는 중...',
+  '브랜딩 구조를 파악하는 중...',
+  '관련 브랜드를 탐색하는 중...',
+  '연락망 정보를 추론하는 중...',
+  '리포트를 구조화하는 중...'
+];
+
+// Industry chip selection
+document.getElementById('industry-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.industry-chip');
+  if (!chip) return;
+  document.querySelectorAll('.industry-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  selectedIndustry = chip.dataset.val;
+  const otherWrap = document.getElementById('other-input-wrap');
+  if (selectedIndustry === '기타') {
+    otherWrap.style.display = 'block';
+    document.getElementById('other-industry-input').focus();
+  } else {
+    otherWrap.style.display = 'none';
+    document.getElementById('other-industry-input').value = '';
+  }
+});
+
+// Enter key
+document.getElementById('brand-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startSearch();
+});
+
+function quickSearch(brand, industry) {
+  document.getElementById('brand-input').value = brand;
+  document.querySelectorAll('.industry-chip').forEach(c => {
+    c.classList.remove('active');
+    if (c.dataset.val === industry) c.classList.add('active');
+  });
+  selectedIndustry = industry;
+  startSearch();
+}
+
+function goBack() {
+  document.getElementById('result-page').style.display = 'none';
+  document.getElementById('search-page').classList.remove('has-result');
+  document.getElementById('other-input-wrap').style.display = 'none';
+  document.getElementById('other-industry-input').value = '';
+  document.querySelectorAll('.industry-chip').forEach(c => c.classList.remove('active'));
+  document.querySelector('.industry-chip[data-val="전체"]').classList.add('active');
+  selectedIndustry = '전체';
+  window.scrollTo(0, 0);
+}
+
+async function startSearch() {
+  const brand = document.getElementById('brand-input').value.trim();
+  if (!brand) { document.getElementById('brand-input').focus(); return; }
+  if (selectedIndustry === '기타') {
+    const custom = document.getElementById('other-industry-input').value.trim();
+    if (!custom) { document.getElementById('other-industry-input').focus(); return; }
+    selectedIndustry = custom;
+  }
+
+  // Hide result if re-searching
+  document.getElementById('result-page').style.display = 'none';
+
+  // Show loading
+  const overlay = document.getElementById('loading-overlay');
+  overlay.style.display = 'flex';
+
+  // Animate loading messages
+  let msgIdx = 0;
+  const statusEl = document.getElementById('loading-status');
+  const msgInterval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % loadingMessages.length;
+    statusEl.textContent = loadingMessages[msgIdx];
+  }, 700);
+
+  // Reset loading bar animation
+  const bar = document.getElementById('loading-bar');
+  bar.style.animation = 'none';
+  bar.offsetHeight;
+  bar.style.animation = 'loadfill 2.5s ease forwards';
+
+  try {
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brand, industry: selectedIndustry })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData?.error || `HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    clearInterval(msgInterval);
+    overlay.style.display = 'none';
+    renderResult(result, brand);
+
+  } catch (err) {
+    clearInterval(msgInterval);
+    overlay.style.display = 'none';
+    const msg = err.message.includes('401') || err.message.includes('auth')
+      ? 'API 키가 올바르지 않습니다. 키를 다시 확인해주세요.'
+      : `오류가 발생했습니다: ${err.message}`;
+    alert(msg);
+    console.error(err);
+  }
+}
+
+function renderResult(data, originalQuery) {
+  // Avatar
+  const name = data.brand_name || originalQuery;
+  document.getElementById('result-avatar').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('result-brand-name').textContent = name;
+  document.getElementById('result-brand-sub').textContent = `${data.industry || selectedIndustry} · ${data.country || ''}`;
+
+  // Chips
+  const chipsEl = document.getElementById('result-chips');
+  chipsEl.innerHTML = '';
+  const chipClasses = ['chip-industry', 'chip-type', 'chip-market'];
+  (data.chips || []).slice(0, 3).forEach((c, i) => {
+    const el = document.createElement('span');
+    el.className = `r-chip ${chipClasses[i % 3]}`;
+    el.textContent = c;
+    chipsEl.appendChild(el);
+  });
+
+  // Metrics
+  const m = data.metrics || {};
+  document.getElementById('m-revenue').textContent = m.revenue || '—';
+  document.getElementById('m-revenue-sub').textContent = m.revenue_sub || '';
+  document.getElementById('m-profit').textContent = m.profit || '—';
+  document.getElementById('m-profit-sub').textContent = m.profit_sub || '';
+  document.getElementById('m-founded').textContent = m.founded || '—';
+  document.getElementById('m-founded-sub').textContent = m.founded_sub || '';
+  document.getElementById('m-type').textContent = m.biz_type || '—';
+  document.getElementById('m-type-sub').textContent = m.biz_type_sub || '';
+
+  // Basic info
+  const basicEl = document.getElementById('basic-info');
+  basicEl.innerHTML = (data.basic_info || []).map(r => `
+    <div class="info-row">
+      <span class="ir-key">${r.key}</span>
+      <span class="ir-val">${r.val}</span>
+    </div>`).join('');
+
+  // Business direction
+  document.getElementById('business-direction').textContent = data.business_direction || '';
+
+  // Brand story
+  document.getElementById('brand-story').textContent = data.brand_story || '';
+
+  // Branding structure - 상세보기 버튼 포함
+  const detailCategories = ['핵심 가치', '비주얼 아이덴티티', '마케팅 전략'];
+  const structEl = document.getElementById('branding-structure');
+  const brandName = data.brand_name || originalQuery;
+  structEl.innerHTML = (data.branding_structure || []).map(s => `
+    <div class="structure-item" style="justify-content:space-between;">
+      <div style="display:flex;align-items:flex-start;gap:0.75rem;flex:1;">
+        <div class="structure-dot"></div>
+        <div>
+          <div class="structure-key">${s.key}</div>
+          <div class="structure-val">${s.val}</div>
+        </div>
+      </div>
+      ${detailCategories.includes(s.key) ? `<button class="detail-btn" onclick="openDetail('${brandName}','${s.key}','${s.val.replace(/'/g,"\\'")}')">상세보기</button>` : ''}
+    </div>`).join('');
+
+  // Related brands - 클릭 시 관련 페이지
+  const relEl = document.getElementById('related-brands');
+  relEl.innerHTML = (data.related_brands || []).map(r => `
+    <div class="related-card" onclick="openRelated('${brandName}','${r.name}','${r.relation.replace(/'/g,"\\'")}')">
+      <div class="related-avatar">${r.name.charAt(0)}</div>
+      <div class="related-name">${r.name}</div>
+      <div class="related-sub">${r.relation}</div>
+      <div style="margin-top:0.5rem;font-size:0.68rem;color:var(--gold);font-weight:500;">기사 & 링크 보기 →</div>
+    </div>`).join('');
+
+  // Contacts
+  const contactIcons = {
+    '공식 웹사이트': '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+    'IR/투자자 연락처': '<svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+    '파트너십 문의': '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    '공식 SNS': '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
+  };
+  const contactEl = document.getElementById('contact-info');
+  contactEl.innerHTML = (data.contacts || []).map(c => `
+    <div class="contact-item">
+      <div class="contact-icon">${contactIcons[c.type] || contactIcons['공식 SNS']}</div>
+      <div>
+        <div class="contact-type">${c.type}</div>
+        <div class="contact-val">${c.val}</div>
+        <div class="contact-confidence"><div class="conf-dot"></div>${c.confidence}</div>
+      </div>
+    </div>`).join('');
+
+  // Show result
+  document.getElementById('result-page').style.display = 'block';
+  document.getElementById('detail-page').style.display = 'none';
+  document.getElementById('related-page').style.display = 'none';
+  document.getElementById('search-page').classList.add('has-result');
+  document.getElementById('result-page').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// 결과 페이지로 돌아가기
+function showResultPage() {
+  document.getElementById('result-page').style.display = 'block';
+  document.getElementById('detail-page').style.display = 'none';
+  document.getElementById('related-page').style.display = 'none';
+  document.getElementById('result-page').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// 상세보기 페이지
+async function openDetail(brand, category, summary) {
+  document.getElementById('result-page').style.display = 'none';
+  document.getElementById('related-page').style.display = 'none';
+  const detailPage = document.getElementById('detail-page');
+  detailPage.style.display = 'block';
+  document.getElementById('detail-divider-label').textContent = category + ' 상세';
+  document.getElementById('detail-title').textContent = `${brand} — ${category}`;
+  document.getElementById('detail-sub').textContent = '구체적 사례 · 관련 기사 · 참고 링크';
+  document.getElementById('detail-content').innerHTML = `
+    <div class="subpage-loading">
+      <div class="subpage-loading-bar"><div class="subpage-loading-fill"></div></div>
+      <div class="subpage-loading-text">AI가 ${category} 상세 정보를 분석하는 중...</div>
+    </div>`;
+  detailPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const res = await fetch('/api/detail', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brand, category, summary })
+    });
+    const data = await res.json();
+    document.getElementById('detail-content').innerHTML = `
+      <div class="summary-card">${data.summary || ''}</div>
+      <div class="section-title-sm"><div class="card-label-dot"></div>구체적 사례</div>
+      <div class="case-list">
+        ${(data.cases || []).map(c => `
+          <div class="case-card">
+            <div class="case-year">${c.year || ''}</div>
+            <div class="case-title">${c.title}</div>
+            <div class="case-desc">${c.desc}</div>
+          </div>`).join('')}
+      </div>
+      <div class="section-title-sm"><div class="card-label-dot"></div>관련 기사 (최근 2년)</div>
+      <div class="article-list">
+        ${(data.articles || []).map(a => `
+          <div class="article-item">
+            <div style="flex:1;">
+              <div class="article-meta">${a.source} · ${a.year}</div>
+              <div class="article-title">${a.title}</div>
+              <div class="article-desc">${a.desc}</div>
+            </div>
+            <a class="article-link" href="${a.url}" target="_blank">보기 →</a>
+          </div>`).join('')}
+      </div>
+      <div class="section-title-sm"><div class="card-label-dot"></div>관련 링크</div>
+      <div class="link-list">
+        ${(data.links || []).map(l => `
+          <div class="link-item">
+            <div>
+              <div class="link-label">${l.label}</div>
+              <div class="link-desc">${l.desc || ''}</div>
+            </div>
+            <a class="link-go" href="${l.url}" target="_blank">방문 →</a>
+          </div>`).join('')}
+      </div>`;
+  } catch (err) {
+    document.getElementById('detail-content').innerHTML = '<div style="padding:2rem;color:var(--mid);">오류가 발생했습니다. 다시 시도해주세요.</div>';
+  }
+}
+
+// 관련 브랜드 페이지
+async function openRelated(brand, relatedBrand, relation) {
+  document.getElementById('result-page').style.display = 'none';
+  document.getElementById('detail-page').style.display = 'none';
+  const relPage = document.getElementById('related-page');
+  relPage.style.display = 'block';
+  document.getElementById('related-title').textContent = relatedBrand;
+  document.getElementById('related-sub').textContent = `${brand}와의 관계 · 관련 기사 · 핵심 콘텐츠`;
+  document.getElementById('related-content').innerHTML = `
+    <div class="subpage-loading">
+      <div class="subpage-loading-bar"><div class="subpage-loading-fill"></div></div>
+      <div class="subpage-loading-text">${relatedBrand} 관련 정보를 불러오는 중...</div>
+    </div>`;
+  relPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const res = await fetch('/api/related', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brand, relatedBrand, relation })
+    });
+    const data = await res.json();
+    document.getElementById('related-content').innerHTML = `
+      <div class="summary-card"><strong>${data.brand_name}</strong>: ${data.brand_summary || ''}<br><br>📌 ${brand}와의 관계: ${data.relation_desc || ''}</div>
+      <div class="section-title-sm"><div class="card-label-dot"></div>관련 기사</div>
+      <div class="article-list">
+        ${(data.articles || []).map(a => `
+          <div class="article-item">
+            <div style="flex:1;">
+              <div class="article-meta">${a.source} · ${a.year}</div>
+              <div class="article-title">${a.title}</div>
+              <div class="article-desc">${a.desc}</div>
+            </div>
+            <a class="article-link" href="${a.url}" target="_blank">보기 →</a>
+          </div>`).join('')}
+      </div>
+      <div class="section-title-sm"><div class="card-label-dot"></div>핵심 콘텐츠 & 이슈</div>
+      <div class="case-list">
+        ${(data.key_contents || []).map(c => `
+          <div class="case-card">
+            <div class="case-year">${c.year || ''}</div>
+            <div class="case-title">${c.title}</div>
+            <div class="case-desc">${c.desc}</div>
+          </div>`).join('')}
+      </div>
+      <div class="section-title-sm"><div class="card-label-dot"></div>공식 링크</div>
+      <div class="link-list">
+        ${(data.official_links || []).map(l => `
+          <div class="link-item">
+            <div><div class="link-label">${l.label}</div></div>
+            <a class="link-go" href="${l.url}" target="_blank">방문 →</a>
+          </div>`).join('')}
+      </div>`;
+  } catch (err) {
+    document.getElementById('related-content').innerHTML = '<div style="padding:2rem;color:var(--mid);">오류가 발생했습니다. 다시 시도해주세요.</div>';
+  }
+}
+
+// PDF 다운로드
+function downloadPDF() {
+  const brand = document.getElementById('result-brand-name').textContent;
+  const sub = document.getElementById('result-brand-sub').textContent;
+  const revenue = document.getElementById('m-revenue').textContent;
+  const profit = document.getElementById('m-profit').textContent;
+  const founded = document.getElementById('m-founded').textContent;
+  const bizType = document.getElementById('m-type').textContent;
+  const direction = document.getElementById('business-direction').textContent;
+  const story = document.getElementById('brand-story').textContent;
+
+  const basicRows = Array.from(document.querySelectorAll('#basic-info .info-row')).map(r => {
+    const k = r.querySelector('.ir-key')?.textContent || '';
+    const v = r.querySelector('.ir-val')?.textContent || '';
+    return `<tr><td style="padding:6px 12px 6px 0;color:#666;font-size:13px;">${k}</td><td style="padding:6px 0;font-size:13px;font-weight:500;">${v}</td></tr>`;
+  }).join('');
+
+  const structRows = Array.from(document.querySelectorAll('#branding-structure .structure-item')).map(r => {
+    const k = r.querySelector('.structure-key')?.textContent || '';
+    const v = r.querySelector('.structure-val')?.textContent || '';
+    return `<tr><td style="padding:6px 12px 6px 0;color:#666;font-size:13px;font-weight:500;width:120px;">${k}</td><td style="padding:6px 0;font-size:13px;">${v}</td></tr>`;
+  }).join('');
+
+  const relatedItems = Array.from(document.querySelectorAll('#related-brands .related-card')).map(r => {
+    const n = r.querySelector('.related-name')?.textContent || '';
+    const s = r.querySelector('.related-sub')?.textContent || '';
+    return `<span style="display:inline-block;margin:3px;padding:4px 10px;background:#f2f1ee;border-radius:100px;font-size:12px;">${n} — ${s}</span>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', Arial, sans-serif; color: #0e0e0e; padding: 48px; max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 28px; font-weight: 600; margin-bottom: 4px; }
+    .sub { color: #666; font-size: 14px; margin-bottom: 32px; }
+    .metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 28px; }
+    .metric { background: #f2f1ee; border-radius: 10px; padding: 14px; }
+    .metric-label { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #888; margin-bottom: 4px; }
+    .metric-val { font-size: 20px; font-weight: 600; }
+    .section { margin-bottom: 24px; }
+    .section-title { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #c9a84c; margin-bottom: 10px; border-bottom: 1px solid #e8e6e1; padding-bottom: 6px; }
+    .text-block { font-size: 13px; line-height: 1.8; color: #444; }
+    table { width: 100%; border-collapse: collapse; }
+    .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e8e6e1; font-size: 11px; color: #aaa; display: flex; justify-content: space-between; }
+  </style>
+  </head><body>
+  <h1>${brand}</h1>
+  <div class="sub">${sub} · PPlaying 브랜드 인텔리전스 리포트</div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">연간 매출</div><div class="metric-val">${revenue}</div></div>
+    <div class="metric"><div class="metric-label">순이익</div><div class="metric-val">${profit}</div></div>
+    <div class="metric"><div class="metric-label">설립 연도</div><div class="metric-val">${founded}</div></div>
+    <div class="metric"><div class="metric-label">사업 형태</div><div class="metric-val">${bizType}</div></div>
+  </div>
+  <div class="section"><div class="section-title">기본 정보</div><table>${basicRows}</table></div>
+  <div class="section"><div class="section-title">사업 방향 & 전략</div><div class="text-block">${direction}</div></div>
+  <div class="section"><div class="section-title">브랜드 스토리</div><div class="text-block">${story}</div></div>
+  <div class="section"><div class="section-title">브랜딩 구조</div><table>${structRows}</table></div>
+  <div class="section"><div class="section-title">관련 브랜드</div><div>${relatedItems}</div></div>
+  <div class="footer"><span>PPlaying Brand Intelligence</span><span>${new Date().toLocaleDateString('ko-KR')}</span></div>
+  </body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => win.print(), 500);
+}
+
+// 심층 분석 페이지 열기
+async function openDeep() {
+  const brandName = document.getElementById('result-brand-name').textContent;
+  const brandSub = document.getElementById('result-brand-sub').textContent;
+  const industry = brandSub.split('·')[0].trim();
+
+  document.getElementById('result-page').style.display = 'none';
+  document.getElementById('detail-page').style.display = 'none';
+  document.getElementById('related-page').style.display = 'none';
+  const deepPage = document.getElementById('deep-page');
+  deepPage.style.display = 'block';
+  document.getElementById('deep-title').textContent = brandName + ' 심층 분석';
+
+  // 로딩 상태 표시
+  const loadingHTML = `<div class="subpage-loading"><div class="subpage-loading-bar"><div class="subpage-loading-fill"></div></div><div class="subpage-loading-text">AI가 심층 분석 리포트를 생성하는 중...</div></div>`;
+  ['history','portfolio','branding','timeline'].forEach(id => {
+    document.getElementById('deep-' + id).innerHTML = loadingHTML;
+  });
+
+  // 첫 탭 활성화
+  document.querySelectorAll('.deep-tab').forEach((b,i) => b.classList.toggle('active', i===0));
+  document.querySelectorAll('.deep-panel').forEach((p,i) => p.classList.toggle('active', i===0));
+  deepPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const res = await fetch('/api/deep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brand: brandName, industry })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderDeep(data);
+  } catch (err) {
+    ['history','portfolio','branding','timeline'].forEach(id => {
+      document.getElementById('deep-' + id).innerHTML = '<div style="padding:2rem;color:var(--mid);">오류가 발생했습니다. 다시 시도해주세요.</div>';
+    });
+  }
+}
+
+function switchDeepTab(id, btn) {
+  document.querySelectorAll('.deep-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.deep-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('deep-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function renderDeep(data) {
+  // TAG LABELS
+  const tagLabels = (data.timeline?.tag_labels) || {
+    ct:'창업/커뮤니티', ca:'커머스/성장', cc:'M&A',
+    cb:'오프라인', cn:'미디어', cp:'글로벌', cg:'인프라'
+  };
+  const tagColors = {
+    ct:'tag-ct', ca:'tag-ca', cb:'tag-cb', cc:'tag-cc',
+    cn:'tag-cn', cp:'tag-cp', cg:'tag-cg'
+  };
+
+  // ── TAB 1: HISTORY ──
+  const h = data.history || {};
+  let histHTML = h.intro ? `<div class="summary-card">${h.intro}</div>` : '';
+  (h.phases || []).forEach(phase => {
+    histHTML += `<div class="history-phase"><div class="phase-label">${phase.title}</div>`;
+    (phase.sections || []).forEach(s => {
+      histHTML += `<div class="history-section"><h3>${s.heading}</h3><p>${s.content}</p>`;
+      if (s.quote) histHTML += `<div class="history-quote">${s.quote}</div>`;
+      histHTML += `</div>`;
+    });
+    histHTML += `</div>`;
+  });
+  document.getElementById('deep-history').innerHTML = histHTML;
+
+  // ── TAB 2: PORTFOLIO ──
+  const p = data.portfolio || {};
+  const root = p.root || {};
+  let portHTML = p.intro ? `<div class="summary-card">${p.intro}</div>` : '';
+  portHTML += `<div class="portfolio-root"><div class="portfolio-root-name">${root.name || ''}</div><div class="portfolio-root-sub">${root.sub || ''}</div></div>`;
+  portHTML += `<div class="portfolio-conn">↓</div><div class="portfolio-cols">`;
+  const colClass = {ct:'col-ct',ca:'col-ca',cb:'col-cb',cc:'col-cc',cn:'col-cn',cp:'col-cp',cg:'col-cg'};
+  (root.children || []).forEach(col => {
+    portHTML += `<div class="${colClass[col.category] || ''}">`;
+    portHTML += `<div class="portfolio-col-title">${col.category_name}</div>`;
+    (col.items || []).forEach((item, idx) => {
+      const itemId = `pi-${col.category}-${idx}`;
+      const tags = (item.tags || []).map(t => `<span class="p-tag ${tagColors[t] || ''}">${t}</span>`).join('');
+      portHTML += `<div class="portfolio-item" id="${itemId}" onclick="document.getElementById('${itemId}').classList.toggle('open')">
+        <div class="portfolio-item-header">
+          <span class="portfolio-item-name">${item.name}</span>
+          <span class="portfolio-item-arrow">▾</span>
+        </div>
+        <div class="portfolio-item-body">${tags ? `<div style="margin-bottom:3px">${tags}</div>` : ''}${item.desc}<div style="margin-top:3px;font-size:0.62rem;color:var(--mid);">${item.source || ''}</div></div>
+      </div>`;
+    });
+    portHTML += `</div>`;
+  });
+  portHTML += `</div>`;
+  document.getElementById('deep-portfolio').innerHTML = portHTML;
+
+  // ── TAB 3: BRANDING ──
+  const br = data.branding || {};
+  const levelClass = {l1:'bl1',l2:'bl2',l3:'bl3',l4:'bl4',l5:'bl5',l6:'bl6'};
+  let brandHTML = br.intro ? `<div class="summary-card">${br.intro}</div>` : '';
+  (br.layers || []).forEach((layer, i) => {
+    if (i > 0) brandHTML += `<div class="layer-arrow">↓</div>`;
+    brandHTML += `<div class="brand-layer ${levelClass[layer.level] || ''}">
+      <div class="layer-num">${layer.num}</div>
+      <div class="layer-brands">${layer.brands}</div>
+      <div class="layer-desc">${layer.desc}</div>
+    </div>`;
+  });
+  if (br.footer_tags) {
+    brandHTML += `<div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;">` +
+      br.footer_tags.map(t => `<span style="font-size:0.72rem;padding:0.3rem 0.75rem;background:var(--surface);border-radius:100px;color:var(--mid);">${t}</span>`).join('') + `</div>`;
+  }
+  document.getElementById('deep-branding').innerHTML = brandHTML;
+
+  // ── TAB 4: TIMELINE ──
+  const tl = data.timeline || {};
+  let tlHTML = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;">`;
+  Object.entries(tagLabels).forEach(([k,v]) => {
+    tlHTML += `<span class="tl-tag ${tagColors[k] || ''}">${v}</span>`;
+  });
+  tlHTML += `</div>`;
+
+  (tl.events || []).forEach(e => {
+    if (e.phase) {
+      tlHTML += `<div class="tl-phase-label">${e.phase}</div>`;
+      return;
+    }
+    const dotSize = e.big ? 12 : 8;
+    const tags = (e.tags || []).map(t => `<span class="tl-tag ${tagColors[t] || ''}">${tagLabels[t] || t}</span>`).join('');
+    tlHTML += `<div class="tl-row">
+      <div class="tl-year">${e.year}</div>
+      <div class="tl-spine"><div class="tl-dot" style="width:${dotSize}px;height:${dotSize}px;margin-top:${e.big?9:10}px;border-width:${e.big?2:1.5}px;"></div></div>
+      <div class="tl-right"><div class="tl-card${e.big?' big':''}">
+        ${tags ? `<div class="tl-tags">${tags}</div>` : ''}
+        <div class="tl-card-title">${e.title}</div>
+        <div class="tl-card-desc">${e.desc}</div>
+      </div></div>
+    </div>`;
+  });
+  document.getElementById('deep-timeline').innerHTML = tlHTML;
+}
+</script>
+
+<!-- DEEP PAGE HTML -->
+<div id="deep-page" style="display:none;">
+  <div class="result-divider">
+    <div class="result-divider-line"></div>
+    <div class="result-divider-label">심층 분석</div>
+    <div class="result-divider-line"></div>
+  </div>
+  <div class="subpage-header">
+    <div>
+      <div class="subpage-title" id="deep-title">심층 분석</div>
+      <div class="subpage-sub">브랜드 히스토리 · 포트폴리오 · 브랜딩 구조 · 타임라인</div>
+    </div>
+    <button class="back-to-result" onclick="showResultPage()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+      분석 결과로
+    </button>
+  </div>
+  <div class="deep-tabs">
+    <button class="deep-tab active" onclick="switchDeepTab('history', this)">브랜드 히스토리</button>
+    <button class="deep-tab" onclick="switchDeepTab('portfolio', this)">포트폴리오</button>
+    <button class="deep-tab" onclick="switchDeepTab('branding', this)">브랜딩 구조</button>
+    <button class="deep-tab" onclick="switchDeepTab('timeline', this)">타임라인</button>
+  </div>
+  <div id="deep-history" class="deep-panel active"></div>
+  <div id="deep-portfolio" class="deep-panel"></div>
+  <div id="deep-branding" class="deep-panel"></div>
+  <div id="deep-timeline" class="deep-panel"></div>
+</div>
+</body>
+</html>
