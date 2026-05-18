@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -20,7 +23,7 @@
     --surface: #f2f1ee;
     --max-w: 1100px;
   }
-  html, body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--white); color: var(--black); min-height: 100vh; }
+  html, body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--white); color: var(--black); min-height: 100vh; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
   /* NAV */
   nav {
@@ -327,6 +330,45 @@
   }
   .deep-btn:hover { opacity: 0.8; }
   .deep-btn svg { width: 13px; height: 13px; stroke: #fff; fill: none; stroke-width: 2; }
+
+  /* DEEP PAGE DOWNLOAD TOOLBAR */
+  .deep-actions { display: flex; align-items: center; gap: 0.5rem; }
+  .deep-action-btn {
+    font-size: 0.78rem; font-weight: 500; padding: 0.5rem 1.1rem;
+    background: var(--black); color: var(--white);
+    border: none; border-radius: 100px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: opacity 0.2s, transform 0.1s;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    white-space: nowrap;
+  }
+  .deep-action-btn:hover { opacity: 0.85; }
+  .deep-action-btn:active { transform: scale(0.98); }
+  .deep-action-btn[disabled] { opacity: 0.5; cursor: progress; }
+  .deep-action-btn.ppt { background: var(--gold); color: #fff; }
+  .deep-action-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .deep-action-btn .chev { width: 10px; height: 10px; margin-left: 0.1rem; opacity: 0.85; }
+
+  /* DOWNLOAD DROPDOWN */
+  .dl-wrap { position: relative; display: inline-block; }
+  .dl-menu {
+    display: none; position: absolute; top: calc(100% + 6px); right: 0;
+    background: var(--card); border: 0.5px solid var(--light);
+    border-radius: 12px; padding: 0.35rem; min-width: 156px;
+    box-shadow: 0 12px 28px rgba(14,14,14,0.10), 0 2px 6px rgba(14,14,14,0.06);
+    z-index: 80;
+  }
+  .dl-wrap.open .dl-menu { display: block; animation: fadeUp 0.18s ease both; }
+  .dl-item {
+    display: flex; align-items: center; gap: 0.55rem; width: 100%;
+    background: none; border: none; cursor: pointer;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    font-size: 0.8rem; color: var(--black); font-weight: 500;
+    padding: 0.55rem 0.75rem; border-radius: 8px; text-align: left;
+  }
+  .dl-item:hover { background: var(--surface); }
+  .dl-item .dl-meta { margin-left: auto; font-size: 0.68rem; color: var(--mid); font-weight: 400; letter-spacing: 0.04em; }
+  .dl-item .dl-ic { width: 14px; height: 14px; stroke: var(--mid); fill: none; stroke-width: 1.7; }
 
   /* DEEP PAGE */
   #deep-page { display: none; padding: 0 2rem 4rem; max-width: var(--max-w); margin: 0 auto; }
@@ -680,10 +722,27 @@
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
         심층 분석
       </button>
-      <button class="pdf-btn" onclick="downloadPDF()">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        내려받기
-      </button>
+      <div class="dl-wrap" id="dl-wrap-result">
+        <button class="pdf-btn" id="dl-trigger-result" onclick="toggleResultDownloadMenu(event)" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          내려받기
+          <svg class="chev" viewBox="0 0 24 24" style="width:10px;height:10px;margin-left:0.1rem;opacity:0.85;"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dl-menu" role="menu">
+          <button class="dl-item" role="menuitem" onclick="downloadResult('pdf')">
+            <svg class="dl-ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            PDF 문서<span class="dl-meta">.pdf</span>
+          </button>
+          <button class="dl-item" role="menuitem" onclick="downloadResult('png')">
+            <svg class="dl-ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            PNG 이미지<span class="dl-meta">.png</span>
+          </button>
+          <button class="dl-item" role="menuitem" onclick="downloadResult('jpeg')">
+            <svg class="dl-ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            JPEG 이미지<span class="dl-meta">.jpg</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -909,6 +968,9 @@ async function startSearch() {
 }
 
 function renderResult(data, originalQuery) {
+  window.__resultData = data;
+  window.__resultQuery = originalQuery;
+  window.__detailCache = {};
   // Avatar
   const name = data.brand_name || originalQuery;
   document.getElementById('result-avatar').textContent = name.charAt(0).toUpperCase();
@@ -1046,6 +1108,8 @@ async function openDetail(brand, category, summary) {
       body: JSON.stringify({ brand, category, summary })
     });
     const data = await res.json();
+    if (!window.__detailCache) window.__detailCache = {};
+    window.__detailCache[category] = data;
     document.getElementById('detail-content').innerHTML = `
       <div class="summary-card">${data.summary || ''}</div>
       <div class="section-title-sm"><div class="card-label-dot"></div>구체적 사례</div>
@@ -1308,6 +1372,7 @@ function switchDeepTab(id, btn) {
 }
 
 function renderDeep(data) {
+  window.__deepData = data;
   // TAG LABELS
   const tagLabels = (data.timeline?.tag_labels) || {
     ct:'창업/커뮤니티', ca:'커머스/성장', cc:'M&A',
@@ -1403,6 +1468,568 @@ function renderDeep(data) {
   });
   document.getElementById('deep-timeline').innerHTML = tlHTML;
 }
+
+/* ============================================================
+   DEEP REPORT DOWNLOAD (PDF / PNG / JPEG)  +  PPT EXPORT
+   ============================================================ */
+
+function toggleDownloadMenu(e) {
+  e.stopPropagation();
+  const wrap = document.getElementById('dl-wrap');
+  const trig = document.getElementById('dl-trigger');
+  const isOpen = wrap.classList.toggle('open');
+  trig.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+}
+document.addEventListener('click', () => {
+  document.querySelectorAll('.dl-wrap.open').forEach(w => {
+    w.classList.remove('open');
+    w.querySelector('[aria-haspopup="true"]')?.setAttribute('aria-expanded', 'false');
+  });
+});
+
+function toggleResultDownloadMenu(e) {
+  e.stopPropagation();
+  const wrap = document.getElementById('dl-wrap-result');
+  const trig = document.getElementById('dl-trigger-result');
+  const isOpen = wrap.classList.toggle('open');
+  trig.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+}
+
+function _slug(s) {
+  return (s || 'brand').replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 40);
+}
+
+function _setBusy(btnId, on, labelOn) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  if (on) {
+    btn.dataset.orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="animation:spin 0.9s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> ${labelOn}`;
+  } else {
+    btn.disabled = false;
+    if (btn.dataset.orig) btn.innerHTML = btn.dataset.orig;
+  }
+}
+// 회전 키프레임을 한 번만 주입
+(function injectSpinKf(){
+  if (document.getElementById('kf-spin')) return;
+  const st = document.createElement('style');
+  st.id = 'kf-spin';
+  st.textContent = '@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}';
+  document.head.appendChild(st);
+})();
+
+async function downloadDeep(format) {
+  document.getElementById('dl-wrap')?.classList.remove('open');
+  const target = document.getElementById('deep-page');
+  if (!target) return;
+
+  // 캡처 전 상태 저장
+  const panels = Array.from(document.querySelectorAll('.deep-panel'));
+  const panelsActive = panels.map(p => p.classList.contains('active'));
+  const tabsBar = document.querySelector('.deep-tabs');
+  const actions = document.querySelector('.deep-actions');
+  const backBtn = document.querySelector('#deep-page .back-to-result');
+
+  panels.forEach(p => p.classList.add('active'));
+  if (tabsBar) tabsBar.style.display = 'none';
+  if (actions) actions.style.visibility = 'hidden';
+  if (backBtn) backBtn.style.visibility = 'hidden';
+
+  _setBusy('dl-trigger', true, '저장 중...');
+
+  try {
+    const canvas = await html2canvas(target, {
+      scale: 2,
+      backgroundColor: '#f8f7f4',
+      useCORS: true,
+      windowWidth: document.documentElement.scrollWidth
+    });
+
+    const brand = (document.getElementById('result-brand-name')?.textContent || 'brand').trim();
+    const date = new Date().toISOString().slice(0, 10);
+    const base = `${_slug(brand)}_심층분석_${date}`;
+
+    if (format === 'pdf') {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgW = pageW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      const img = canvas.toDataURL('image/png');
+
+      let pos = 0;
+      let page = 0;
+      let remain = imgH;
+      while (remain > 0) {
+        if (page > 0) pdf.addPage();
+        pdf.addImage(img, 'PNG', 0, pos, imgW, imgH);
+        remain -= pageH;
+        pos -= pageH;
+        page++;
+      }
+      pdf.save(`${base}.pdf`);
+    } else if (format === 'png') {
+      const a = document.createElement('a');
+      a.download = `${base}.png`;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    } else if (format === 'jpeg') {
+      const tmp = document.createElement('canvas');
+      tmp.width = canvas.width;
+      tmp.height = canvas.height;
+      const ctx = tmp.getContext('2d');
+      ctx.fillStyle = '#f8f7f4';
+      ctx.fillRect(0, 0, tmp.width, tmp.height);
+      ctx.drawImage(canvas, 0, 0);
+      const a = document.createElement('a');
+      a.download = `${base}.jpg`;
+      a.href = tmp.toDataURL('image/jpeg', 0.95);
+      a.click();
+    }
+  } catch (err) {
+    console.error(err);
+    alert('다운로드 중 오류가 발생했습니다.');
+  } finally {
+    panels.forEach((p, i) => p.classList.toggle('active', panelsActive[i]));
+    if (tabsBar) tabsBar.style.display = '';
+    if (actions) actions.style.visibility = '';
+    if (backBtn) backBtn.style.visibility = '';
+    _setBusy('dl-trigger', false);
+  }
+}
+
+/* ---------- PPT EXPORT ---------- */
+
+async function downloadFullPPT() {
+  if (typeof PptxGenJS === 'undefined') {
+    alert('PPT 라이브러리를 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.');
+    return;
+  }
+  _setBusy('ppt-btn', true, 'PPT 생성 중...');
+
+  try {
+    const pptx = new PptxGenJS();
+    pptx.defineLayout({ name: 'PPL', width: 13.33, height: 7.5 });
+    pptx.layout = 'PPL';
+
+    const C = {
+      bg: 'F8F7F4', card: 'FFFFFF', black: '0E0E0E', gold: 'C9A84C',
+      goldLight: 'F5ECD4', mid: '6B6B6B', light: 'E8E6E1', surface: 'F2F1EE'
+    };
+    const FONT = 'Pretendard';
+
+    const brand = (document.getElementById('result-brand-name')?.textContent || '브랜드').trim();
+    const sub = (document.getElementById('result-brand-sub')?.textContent || '').trim();
+    const date = new Date().toLocaleDateString('ko-KR');
+
+    // 공통: 페이지 헤더/푸터
+    function frame(s, sectionLabel) {
+      s.background = { color: C.bg };
+      // 상단 바
+      s.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.33, h: 0.55, fill: { color: C.black }, line: { type: 'none' } });
+      s.addText('PPLAYING', { x: 0.6, y: 0.13, w: 4, h: 0.3, fontSize: 9, color: C.gold, bold: true, charSpacing: 8, fontFace: FONT });
+      s.addText(brand, { x: 0, y: 0.13, w: 13.33 - 0.6, h: 0.3, fontSize: 9, color: 'FFFFFF', align: 'right', fontFace: FONT });
+      // 섹션 라벨
+      s.addText(sectionLabel, { x: 0.6, y: 0.85, w: 12, h: 0.35, fontSize: 10, color: C.gold, bold: true, charSpacing: 8, fontFace: FONT });
+      // 푸터
+      s.addShape(pptx.ShapeType.line, { x: 0.6, y: 7.15, w: 12.13, h: 0, line: { color: C.light, width: 0.5 } });
+      s.addText('Brand Intelligence Report', { x: 0.6, y: 7.2, w: 6, h: 0.25, fontSize: 8, color: C.mid, fontFace: FONT });
+      s.addText(date, { x: 7, y: 7.2, w: 5.73, h: 0.25, fontSize: 8, color: C.mid, align: 'right', fontFace: FONT });
+    }
+    function sectionTitle(s, title) {
+      s.addText(title, { x: 0.6, y: 1.2, w: 12, h: 0.7, fontSize: 28, color: C.black, bold: true, fontFace: FONT });
+      s.addShape(pptx.ShapeType.rect, { x: 0.6, y: 1.95, w: 0.7, h: 0.04, fill: { color: C.gold }, line: { type: 'none' } });
+    }
+
+    /* ─────────── COVER ─────────── */
+    let s = pptx.addSlide();
+    s.background = { color: C.black };
+    s.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.33, h: 0.04, fill: { color: C.gold }, line: { type: 'none' } });
+    s.addText('PPLAYING', { x: 0.7, y: 0.7, w: 6, h: 0.35, fontSize: 12, color: C.gold, bold: true, charSpacing: 10, fontFace: FONT });
+    s.addText('BRAND INTELLIGENCE REPORT', { x: 0.7, y: 1.05, w: 8, h: 0.3, fontSize: 9, color: 'AAAAAA', charSpacing: 6, fontFace: FONT });
+    s.addText(brand, { x: 0.7, y: 3.0, w: 12, h: 1.4, fontSize: 60, color: 'FFFFFF', bold: true, fontFace: FONT });
+    if (sub) s.addText(sub, { x: 0.7, y: 4.5, w: 12, h: 0.5, fontSize: 16, color: C.gold, fontFace: FONT });
+    s.addShape(pptx.ShapeType.line, { x: 0.7, y: 6.5, w: 1.5, h: 0, line: { color: C.gold, width: 1.5 } });
+    s.addText(date, { x: 0.7, y: 6.6, w: 4, h: 0.3, fontSize: 10, color: 'CCCCCC', fontFace: FONT });
+    s.addText('CONFIDENTIAL', { x: 0, y: 6.6, w: 12.63, h: 0.3, fontSize: 8, color: C.mid, align: 'right', charSpacing: 6, fontFace: FONT });
+
+    /* ─────────── 1. 핵심 지표 ─────────── */
+    s = pptx.addSlide(); frame(s, '01 · OVERVIEW'); sectionTitle(s, '핵심 지표');
+    const M = [
+      ['연간 매출', 'm-revenue', 'm-revenue-sub'],
+      ['순이익',   'm-profit',  'm-profit-sub'],
+      ['설립 연도', 'm-founded', 'm-founded-sub'],
+      ['사업 형태', 'm-type',    'm-type-sub']
+    ];
+    M.forEach((m, i) => {
+      const x = 0.6 + i * 3.05;
+      s.addShape(pptx.ShapeType.roundRect, { x, y: 2.35, w: 2.85, h: 1.45, fill: { color: C.card }, line: { color: C.light, width: 0.5 }, rectRadius: 0.08 });
+      s.addText(m[0], { x: x + 0.25, y: 2.5, w: 2.5, h: 0.3, fontSize: 9, color: C.mid, bold: true, charSpacing: 6, fontFace: FONT });
+      s.addText((document.getElementById(m[1])?.textContent || '—'), { x: x + 0.25, y: 2.85, w: 2.5, h: 0.6, fontSize: 22, color: C.black, bold: true, fontFace: FONT });
+      const sub2 = document.getElementById(m[2])?.textContent || '';
+      if (sub2) s.addText(sub2, { x: x + 0.25, y: 3.45, w: 2.5, h: 0.25, fontSize: 9, color: C.mid, fontFace: FONT });
+    });
+    // 기본 정보
+    const basicRows = Array.from(document.querySelectorAll('#basic-info .info-row')).map(r => ({
+      k: r.querySelector('.ir-key')?.textContent || '',
+      v: r.querySelector('.ir-val')?.textContent || ''
+    }));
+    s.addText('기본 정보', { x: 0.6, y: 4.2, w: 12, h: 0.35, fontSize: 10, color: C.gold, bold: true, charSpacing: 6, fontFace: FONT });
+    basicRows.slice(0, 6).forEach((r, i) => {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const x = 0.6 + col * 6.2;
+      const y = 4.65 + row * 0.55;
+      s.addShape(pptx.ShapeType.line, { x, y: y + 0.42, w: 5.9, h: 0, line: { color: C.light, width: 0.5 } });
+      s.addText(r.k, { x, y, w: 2, h: 0.4, fontSize: 10, color: C.mid, fontFace: FONT });
+      s.addText(r.v, { x: x + 2.1, y, w: 3.8, h: 0.4, fontSize: 11, color: C.black, bold: true, fontFace: FONT });
+    });
+
+    /* ─────────── 2. 사업 방향 & 브랜드 스토리 ─────────── */
+    s = pptx.addSlide(); frame(s, '02 · STRATEGY & STORY'); sectionTitle(s, '사업 방향 & 브랜드 스토리');
+    s.addText('사업 방향 & 전략', { x: 0.6, y: 2.25, w: 12, h: 0.35, fontSize: 10, color: C.gold, bold: true, charSpacing: 6, fontFace: FONT });
+    s.addText(document.getElementById('business-direction')?.textContent || '', {
+      x: 0.6, y: 2.65, w: 12.13, h: 1.8, fontSize: 12, color: C.black, fontFace: FONT, valign: 'top', paraSpaceAfter: 4
+    });
+    s.addText('브랜드 스토리', { x: 0.6, y: 4.55, w: 12, h: 0.35, fontSize: 10, color: C.gold, bold: true, charSpacing: 6, fontFace: FONT });
+    s.addText(document.getElementById('brand-story')?.textContent || '', {
+      x: 0.6, y: 4.95, w: 12.13, h: 2.1, fontSize: 12, color: C.black, fontFace: FONT, valign: 'top', paraSpaceAfter: 4
+    });
+
+    /* ─────────── 3. 브랜딩 구조 & 관련 브랜드 ─────────── */
+    s = pptx.addSlide(); frame(s, '03 · BRANDING & REFERENCES'); sectionTitle(s, '브랜딩 구조 & 관련 브랜드');
+    const structRows = Array.from(document.querySelectorAll('#branding-structure .structure-item')).map(r => ({
+      k: r.querySelector('.structure-key')?.textContent || '',
+      v: r.querySelector('.structure-val')?.textContent || ''
+    }));
+    s.addText('브랜딩 구조', { x: 0.6, y: 2.25, w: 8, h: 0.35, fontSize: 10, color: C.gold, bold: true, charSpacing: 6, fontFace: FONT });
+    structRows.slice(0, 8).forEach((r, i) => {
+      const y = 2.7 + i * 0.5;
+      s.addShape(pptx.ShapeType.ellipse, { x: 0.6, y: y + 0.18, w: 0.1, h: 0.1, fill: { color: C.gold }, line: { type: 'none' } });
+      s.addText(r.k, { x: 0.85, y, w: 1.8, h: 0.45, fontSize: 11, color: C.black, bold: true, fontFace: FONT });
+      s.addText(r.v, { x: 2.7, y, w: 5.7, h: 0.45, fontSize: 10, color: C.mid, fontFace: FONT });
+    });
+    const relItems = Array.from(document.querySelectorAll('#related-brands .related-card')).map(r => ({
+      n: r.querySelector('.related-name')?.textContent || '',
+      r: r.querySelector('.related-sub')?.textContent || ''
+    }));
+    s.addText('관련 브랜드 레퍼런스', { x: 8.8, y: 2.25, w: 4, h: 0.35, fontSize: 10, color: C.gold, bold: true, charSpacing: 6, fontFace: FONT });
+    relItems.slice(0, 8).forEach((r, i) => {
+      const y = 2.7 + i * 0.5;
+      s.addShape(pptx.ShapeType.roundRect, { x: 8.8, y, w: 3.93, h: 0.42, fill: { color: C.surface }, line: { type: 'none' }, rectRadius: 0.06 });
+      s.addText(r.n, { x: 8.95, y: y + 0.03, w: 3.7, h: 0.2, fontSize: 10, color: C.black, bold: true, fontFace: FONT });
+      s.addText(r.r, { x: 8.95, y: y + 0.2, w: 3.7, h: 0.2, fontSize: 8, color: C.mid, fontFace: FONT });
+    });
+
+    /* ─────────── 4. 심층: 브랜드 히스토리 ─────────── */
+    const data = window.__deepData || {};
+    const phases = (data.history && data.history.phases) || [];
+    if (data.history?.intro || phases.length) {
+      s = pptx.addSlide(); frame(s, '04 · DEEP · BRAND HISTORY'); sectionTitle(s, '브랜드 히스토리');
+      if (data.history?.intro) {
+        s.addText(data.history.intro, { x: 0.6, y: 2.25, w: 12.13, h: 1.2, fontSize: 12, color: C.black, fontFace: FONT, valign: 'top' });
+      }
+      phases.slice(0, 4).forEach((ph, i) => {
+        const x = 0.6 + (i % 2) * 6.2;
+        const y = 3.55 + Math.floor(i / 2) * 1.8;
+        s.addShape(pptx.ShapeType.roundRect, { x, y, w: 5.9, h: 1.65, fill: { color: C.card }, line: { color: C.light, width: 0.5 }, rectRadius: 0.08 });
+        s.addText(ph.title || '', { x: x + 0.25, y: y + 0.15, w: 5.4, h: 0.35, fontSize: 10, color: C.gold, bold: true, charSpacing: 6, fontFace: FONT });
+        const txt = (ph.sections || []).map(sec => `${sec.heading}\n${sec.content || ''}`).join('\n\n');
+        s.addText(txt.slice(0, 360), { x: x + 0.25, y: y + 0.5, w: 5.4, h: 1.05, fontSize: 9, color: C.black, fontFace: FONT, valign: 'top' });
+      });
+    }
+    // 페이즈별 상세 슬라이드
+    phases.forEach((ph) => {
+      const sections = ph.sections || [];
+      if (!sections.length) return;
+      s = pptx.addSlide(); frame(s, '04 · DEEP · BRAND HISTORY'); sectionTitle(s, ph.title || '브랜드 히스토리');
+      let y = 2.4;
+      sections.slice(0, 4).forEach(sec => {
+        if (y > 6.6) return;
+        s.addText(sec.heading || '', { x: 0.6, y, w: 12, h: 0.4, fontSize: 14, color: C.black, bold: true, fontFace: FONT });
+        y += 0.45;
+        const body = (sec.content || '').slice(0, 600);
+        s.addText(body, { x: 0.6, y, w: 12.13, h: 1.1, fontSize: 10.5, color: C.mid, fontFace: FONT, valign: 'top' });
+        y += 1.1;
+        if (sec.quote) {
+          s.addShape(pptx.ShapeType.rect, { x: 0.6, y, w: 0.05, h: 0.55, fill: { color: C.gold }, line: { type: 'none' } });
+          s.addText(sec.quote.slice(0, 280), { x: 0.8, y, w: 11.9, h: 0.55, fontSize: 10, color: '5A4010', italic: true, fontFace: FONT, valign: 'top' });
+          y += 0.7;
+        }
+        y += 0.2;
+      });
+    });
+
+    /* ─────────── 5. 심층: 포트폴리오 ─────────── */
+    const portfolio = data.portfolio || {};
+    const cols = (portfolio.root && portfolio.root.children) || [];
+    if (cols.length) {
+      s = pptx.addSlide(); frame(s, '05 · DEEP · PORTFOLIO'); sectionTitle(s, '포트폴리오 구조');
+      if (portfolio.intro) s.addText(portfolio.intro, { x: 0.6, y: 2.3, w: 12.13, h: 0.7, fontSize: 11, color: C.mid, fontFace: FONT });
+      // 루트
+      const rootName = portfolio.root?.name || brand;
+      s.addShape(pptx.ShapeType.roundRect, { x: 5.5, y: 3.1, w: 2.3, h: 0.6, fill: { color: C.black }, line: { type: 'none' }, rectRadius: 0.08 });
+      s.addText(rootName, { x: 5.5, y: 3.1, w: 2.3, h: 0.6, fontSize: 12, color: 'FFFFFF', bold: true, align: 'center', valign: 'middle', fontFace: FONT });
+      // 컬럼
+      const N = Math.min(cols.length, 6);
+      const totalW = 13.33 - 1.2;
+      const gap = 0.15;
+      const colW = (totalW - gap * (N - 1)) / N;
+      cols.slice(0, N).forEach((col, i) => {
+        const x = 0.6 + i * (colW + gap);
+        s.addShape(pptx.ShapeType.roundRect, { x, y: 4.0, w: colW, h: 0.45, fill: { color: C.gold }, line: { type: 'none' }, rectRadius: 0.06 });
+        s.addText(col.category_name || '', { x, y: 4.05, w: colW, h: 0.35, fontSize: 9, color: 'FFFFFF', bold: true, align: 'center', charSpacing: 4, fontFace: FONT });
+        (col.items || []).slice(0, 5).forEach((it, j) => {
+          const y2 = 4.6 + j * 0.5;
+          s.addShape(pptx.ShapeType.roundRect, { x, y: y2, w: colW, h: 0.42, fill: { color: C.card }, line: { color: C.light, width: 0.4 }, rectRadius: 0.05 });
+          s.addText(it.name || '', { x: x + 0.1, y: y2 + 0.03, w: colW - 0.2, h: 0.2, fontSize: 9, color: C.black, bold: true, fontFace: FONT });
+          s.addText((it.desc || '').slice(0, 80), { x: x + 0.1, y: y2 + 0.22, w: colW - 0.2, h: 0.2, fontSize: 7, color: C.mid, fontFace: FONT });
+        });
+      });
+    }
+
+    /* ─────────── 6. 심층: 브랜딩 구조 (레이어) ─────────── */
+    const layers = (data.branding && data.branding.layers) || [];
+    if (layers.length) {
+      s = pptx.addSlide(); frame(s, '06 · DEEP · BRANDING ARCHITECTURE'); sectionTitle(s, '브랜딩 구조 · 계층');
+      if (data.branding?.intro) s.addText(data.branding.intro, { x: 0.6, y: 2.3, w: 12.13, h: 0.7, fontSize: 11, color: C.mid, fontFace: FONT });
+      layers.slice(0, 6).forEach((l, i) => {
+        const y = 3.1 + i * 0.65;
+        s.addShape(pptx.ShapeType.ellipse, { x: 0.6, y: y + 0.05, w: 0.55, h: 0.55, fill: { color: C.gold }, line: { type: 'none' } });
+        s.addText(l.num || '', { x: 0.6, y: y + 0.05, w: 0.55, h: 0.55, fontSize: 11, color: 'FFFFFF', bold: true, align: 'center', valign: 'middle', fontFace: FONT });
+        s.addText(l.brands || '', { x: 1.4, y, w: 11.3, h: 0.3, fontSize: 12, color: C.black, bold: true, fontFace: FONT });
+        s.addText(l.desc || '', { x: 1.4, y: y + 0.3, w: 11.3, h: 0.3, fontSize: 10, color: C.mid, fontFace: FONT });
+      });
+    }
+
+    /* ─────────── 7. 심층: 타임라인 ─────────── */
+    const events = (data.timeline && data.timeline.events) || [];
+    if (events.length) {
+      const PER = 7;
+      for (let p = 0; p < events.length; p += PER) {
+        s = pptx.addSlide(); frame(s, '07 · DEEP · TIMELINE'); sectionTitle(s, '타임라인');
+        const chunk = events.slice(p, p + PER);
+        chunk.forEach((e, i) => {
+          const y = 2.35 + i * 0.65;
+          if (e.phase) {
+            s.addShape(pptx.ShapeType.roundRect, { x: 0.6, y: y + 0.05, w: 3, h: 0.35, fill: { color: C.surface }, line: { type: 'none' }, rectRadius: 0.05 });
+            s.addText(e.phase, { x: 0.75, y: y + 0.05, w: 2.8, h: 0.35, fontSize: 10, color: C.mid, bold: true, valign: 'middle', fontFace: FONT });
+            return;
+          }
+          s.addText(e.year || '', { x: 0.6, y, w: 1.3, h: 0.5, fontSize: 15, color: C.gold, bold: true, fontFace: FONT });
+          s.addShape(pptx.ShapeType.ellipse, { x: 2.0, y: y + 0.22, w: 0.12, h: 0.12, fill: { color: C.gold }, line: { type: 'none' } });
+          s.addShape(pptx.ShapeType.line, { x: 2.06, y: y + 0.28, w: 0, h: 0.45, line: { color: C.light, width: 0.6 } });
+          s.addText(e.title || '', { x: 2.4, y, w: 10.3, h: 0.3, fontSize: 12, color: C.black, bold: true, fontFace: FONT });
+          s.addText(e.desc || '', { x: 2.4, y: y + 0.3, w: 10.3, h: 0.3, fontSize: 9, color: C.mid, fontFace: FONT });
+        });
+      }
+    }
+
+    /* ─────────── 마지막 ─────────── */
+    s = pptx.addSlide();
+    s.background = { color: C.black };
+    s.addText('Thank you.', { x: 0.7, y: 2.8, w: 12, h: 1.2, fontSize: 60, color: 'FFFFFF', italic: true, fontFace: 'Playfair Display' });
+    s.addShape(pptx.ShapeType.line, { x: 0.7, y: 4.0, w: 1.5, h: 0, line: { color: C.gold, width: 1.5 } });
+    s.addText('PPLAYING · BRAND INTELLIGENCE', { x: 0.7, y: 4.15, w: 12, h: 0.35, fontSize: 11, color: C.gold, bold: true, charSpacing: 8, fontFace: FONT });
+    s.addText(date, { x: 0.7, y: 4.5, w: 12, h: 0.3, fontSize: 10, color: 'AAAAAA', fontFace: FONT });
+
+    const filename = `${_slug(brand)}_분석리포트_${new Date().toISOString().slice(0, 10)}.pptx`;
+    await pptx.writeFile({ fileName: filename });
+  } catch (err) {
+    console.error(err);
+    alert('PPT 생성 중 오류가 발생했습니다.');
+  } finally {
+    _setBusy('ppt-btn', false);
+  }
+}
+
+/* ============================================================
+   RESULT PAGE REPORT DOWNLOAD (PDF / PNG / JPEG)
+   - 브랜딩 구조의 '상세보기' 데이터까지 자동으로 포함해 저장
+   ============================================================ */
+
+const DETAIL_CATEGORIES = ['핵심 가치', '비주얼 아이덴티티', '마케팅 전략'];
+
+async function _prefetchDetails(brand) {
+  if (!window.__detailCache) window.__detailCache = {};
+  const data = window.__resultData || {};
+  const structure = data.branding_structure || [];
+  const summaryMap = {};
+  structure.forEach(s => { summaryMap[s.key] = s.val; });
+
+  const missing = DETAIL_CATEGORIES.filter(c => !window.__detailCache[c] && summaryMap[c]);
+  if (!missing.length) return;
+
+  await Promise.all(missing.map(async (category) => {
+    try {
+      const res = await fetch('https://pplaying-production.up.railway.app/api/detail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brand, category, summary: summaryMap[category] })
+      });
+      if (!res.ok) return;
+      window.__detailCache[category] = await res.json();
+    } catch (e) { /* silent */ }
+  }));
+}
+
+function _buildDetailSection() {
+  const cache = window.__detailCache || {};
+  const cats = DETAIL_CATEGORIES.filter(c => cache[c]);
+  if (!cats.length) return null;
+
+  const wrap = document.createElement('div');
+  wrap.dataset.exportExtra = '1';
+  wrap.innerHTML = `
+    <div class="result-divider" style="margin-top:2rem;">
+      <div class="result-divider-line"></div>
+      <div class="result-divider-label">브랜딩 구조 상세</div>
+      <div class="result-divider-line"></div>
+    </div>
+    ${cats.map(cat => {
+      const d = cache[cat] || {};
+      const cases = (d.cases || []).slice(0, 6);
+      const articles = (d.articles || []).slice(0, 5);
+      const links = (d.links || []).slice(0, 6);
+      return `
+      <div class="content-grid full" style="margin-bottom:1.25rem;">
+        <div class="info-card">
+          <div class="card-label"><div class="card-label-dot"></div>${cat} · 상세 분석</div>
+          ${d.summary ? `<div class="story-text" style="font-size:0.88rem;margin-bottom:1rem;">${d.summary}</div>` : ''}
+
+          ${cases.length ? `
+            <div style="font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);margin:0.5rem 0 0.6rem;">구체적 사례</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.6rem;">
+              ${cases.map(c => `
+                <div style="background:var(--surface);border-radius:10px;padding:0.85rem 1rem;">
+                  ${c.year ? `<div style="font-size:0.65rem;font-weight:600;letter-spacing:0.05em;color:var(--gold);text-transform:uppercase;margin-bottom:0.25rem;">${c.year}</div>` : ''}
+                  <div style="font-size:0.82rem;font-weight:600;color:var(--black);margin-bottom:0.25rem;">${c.title || ''}</div>
+                  <div style="font-size:0.74rem;color:var(--mid);line-height:1.6;">${c.desc || ''}</div>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          ${articles.length ? `
+            <div style="font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);margin:1rem 0 0.6rem;">관련 기사 (최근 2년)</div>
+            <div style="display:flex;flex-direction:column;gap:0.5rem;">
+              ${articles.map(a => `
+                <div style="background:var(--card);border:0.5px solid var(--light);border-radius:10px;padding:0.7rem 0.95rem;">
+                  <div style="font-size:0.66rem;color:var(--mid);margin-bottom:0.2rem;">${a.source || ''}${a.year ? ' · ' + a.year : ''}</div>
+                  <div style="font-size:0.82rem;font-weight:500;color:var(--black);margin-bottom:0.2rem;">${a.title || ''}</div>
+                  <div style="font-size:0.74rem;color:var(--mid);line-height:1.6;">${a.desc || ''}</div>
+                  ${a.url ? `<div style="font-size:0.66rem;color:var(--mid);margin-top:0.25rem;word-break:break-all;">${a.url}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          ${links.length ? `
+            <div style="font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);margin:1rem 0 0.6rem;">관련 링크</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.5rem;">
+              ${links.map(l => `
+                <div style="background:var(--surface);border-radius:10px;padding:0.7rem 0.9rem;">
+                  <div style="font-size:0.78rem;font-weight:500;color:var(--black);margin-bottom:0.2rem;">${l.label || ''}</div>
+                  ${l.desc ? `<div style="font-size:0.72rem;color:var(--mid);line-height:1.5;margin-bottom:0.2rem;">${l.desc}</div>` : ''}
+                  ${l.url ? `<div style="font-size:0.66rem;color:var(--mid);word-break:break-all;">${l.url}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+  return wrap;
+}
+
+async function downloadResult(format) {
+  document.getElementById('dl-wrap-result')?.classList.remove('open');
+  const target = document.getElementById('result-page');
+  if (!target) return;
+
+  const brand = (document.getElementById('result-brand-name')?.textContent || 'brand').trim();
+  const date = new Date().toISOString().slice(0, 10);
+  const base = `${_slug(brand)}_분석리포트_${date}`;
+
+  // 캡처에서 헤더 버튼류는 잠시 숨김
+  const headerActions = target.querySelector('.result-header > div:last-child');
+  const contactBtn = document.getElementById('contact-search-btn');
+  const prevHeaderVisibility = headerActions?.style.visibility;
+  const prevContactDisplay = contactBtn?.style.display;
+  if (headerActions) headerActions.style.visibility = 'hidden';
+  if (contactBtn) contactBtn.style.display = 'none';
+
+  _setBusy('dl-trigger-result', true, '저장 중...');
+
+  let extraSection = null;
+  try {
+    await _prefetchDetails(brand);
+    extraSection = _buildDetailSection();
+    if (extraSection) target.appendChild(extraSection);
+
+    // 폰트/이미지 로딩 대기
+    if (document.fonts && document.fonts.ready) {
+      try { await document.fonts.ready; } catch(_) {}
+    }
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    const canvas = await html2canvas(target, {
+      scale: 2,
+      backgroundColor: '#f8f7f4',
+      useCORS: true,
+      windowWidth: document.documentElement.scrollWidth
+    });
+
+    if (format === 'pdf') {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgW = pageW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      const img = canvas.toDataURL('image/png');
+
+      let pos = 0, page = 0, remain = imgH;
+      while (remain > 0) {
+        if (page > 0) pdf.addPage();
+        pdf.addImage(img, 'PNG', 0, pos, imgW, imgH);
+        remain -= pageH;
+        pos -= pageH;
+        page++;
+      }
+      pdf.save(`${base}.pdf`);
+    } else if (format === 'png') {
+      const a = document.createElement('a');
+      a.download = `${base}.png`;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    } else if (format === 'jpeg') {
+      const tmp = document.createElement('canvas');
+      tmp.width = canvas.width;
+      tmp.height = canvas.height;
+      const ctx = tmp.getContext('2d');
+      ctx.fillStyle = '#f8f7f4';
+      ctx.fillRect(0, 0, tmp.width, tmp.height);
+      ctx.drawImage(canvas, 0, 0);
+      const a = document.createElement('a');
+      a.download = `${base}.jpg`;
+      a.href = tmp.toDataURL('image/jpeg', 0.95);
+      a.click();
+    }
+  } catch (err) {
+    console.error(err);
+    alert('다운로드 중 오류가 발생했습니다.');
+  } finally {
+    if (extraSection && extraSection.parentNode) extraSection.parentNode.removeChild(extraSection);
+    if (headerActions) headerActions.style.visibility = prevHeaderVisibility || '';
+    if (contactBtn) contactBtn.style.display = prevContactDisplay || '';
+    _setBusy('dl-trigger-result', false);
+  }
+}
 </script>
 
 <!-- DEEP PAGE HTML -->
@@ -1417,10 +2044,37 @@ function renderDeep(data) {
       <div class="subpage-title" id="deep-title">심층 분석</div>
       <div class="subpage-sub">브랜드 히스토리 · 포트폴리오 · 브랜딩 구조 · 타임라인</div>
     </div>
-    <button class="back-to-result" onclick="showResultPage()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-      분석 결과로
-    </button>
+    <div class="deep-actions">
+      <div class="dl-wrap" id="dl-wrap">
+        <button class="deep-action-btn" id="dl-trigger" onclick="toggleDownloadMenu(event)" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          리포트 저장
+          <svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dl-menu" role="menu">
+          <button class="dl-item" role="menuitem" onclick="downloadDeep('pdf')">
+            <svg class="dl-ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            PDF 문서<span class="dl-meta">.pdf</span>
+          </button>
+          <button class="dl-item" role="menuitem" onclick="downloadDeep('png')">
+            <svg class="dl-ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            PNG 이미지<span class="dl-meta">.png</span>
+          </button>
+          <button class="dl-item" role="menuitem" onclick="downloadDeep('jpeg')">
+            <svg class="dl-ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            JPEG 이미지<span class="dl-meta">.jpg</span>
+          </button>
+        </div>
+      </div>
+      <button class="deep-action-btn ppt" id="ppt-btn" onclick="downloadFullPPT()">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2" ry="2"/><path d="M8 22h8"/><path d="M12 18v4"/><path d="M8 11h4a2 2 0 1 0 0-4H8v8"/></svg>
+        PPT로 저장
+      </button>
+      <button class="back-to-result" onclick="showResultPage()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+        분석 결과로
+      </button>
+    </div>
   </div>
   <div class="deep-tabs">
     <button class="deep-tab active" onclick="switchDeepTab('history', this)">브랜드 히스토리</button>
