@@ -212,6 +212,9 @@
   .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
   .content-grid.three { grid-template-columns: 1fr 1fr 1fr; }
   .content-grid.full { grid-template-columns: 1fr; }
+  /* 브랜딩 구조 : 관련 브랜드 = 2 : 1 */
+  .content-grid.brand-related { grid-template-columns: 2fr 1fr; }
+  .content-grid.brand-related .related-grid { grid-template-columns: repeat(2, 1fr); }
 
   .info-card {
     background: var(--card); border: 0.5px solid var(--light);
@@ -713,7 +716,7 @@
   </div>
 
   <!-- BRANDING STRUCTURE + RELATED -->
-  <div class="content-grid" style="margin-bottom:1.25rem;">
+  <div class="content-grid brand-related" style="margin-bottom:1.25rem;">
     <div class="info-card">
       <div class="card-label"><div class="card-label-dot"></div>브랜딩 구조</div>
       <div class="brand-structure" id="branding-structure"></div>
