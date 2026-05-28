@@ -397,6 +397,79 @@ app.post('/api/deep', async (req, res) => {
   }
 });
 
+// 브랜드 검색(발견) API — 브랜드명을 모를 때 AI 추천 리스트
+app.post('/api/discover', async (req, res) => {
+  const { query, industry } = req.body;
+
+  if (!query) {
+    return res.status(400).json({ error: '검색 질문을 입력해주세요.' });
+  }
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res.status(500).json({ error: '.env 파일에 ANTHROPIC_API_KEY가 없습니다.' });
+  }
+
+  const industryFilter = industry && industry !== '전체' ? industry : '전 산업';
+
+  const prompt = `당신은 브랜드 인텔리전스 전문 AI입니다. 사용자가 브랜드명을 모르고 탐색 중입니다.
+
+사용자 질문: ${query}
+산업군 필터: ${industryFilter}
+
+위 조건에 맞는 브랜드를 **정확히 10개** 추천하세요. 실존하는 브랜드만 포함하고, 순위는 브랜딩·사업 영향력 기준으로 매기세요.
+
+반드시 아래 JSON 형식으로만 응답하세요. JSON 외 텍스트는 절대 포함하지 마세요.
+
+{
+  "query_summary": "이번 추천의 한 줄 요약",
+  "brands": [
+    {
+      "rank": 1,
+      "brand_name": "공식 브랜드명 (한국어, 필요시 영문 병기)",
+      "country": "본사 국가",
+      "industry": "세부 산업군",
+      "branding_philosophy": "브랜딩 철학·포지셔닝 1~2문장",
+      "business_structure": "사업 구조·채널·수익모델 1~2문장",
+      "why_notable": "추천 이유 한 줄"
+    }
+  ]
+}`;
+
+  try {
+    const response = await fetchFn('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      return res.status(response.status).json({
+        error: errData?.error?.message || `API 오류 (${response.status})`
+      });
+    }
+
+    const data = await response.json();
+    const raw = data.content.map(i => i.text || '').join('');
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('JSON 응답을 찾을 수 없습니다.');
+    const result = JSON.parse(match[0]);
+
+    res.json(result);
+  } catch (err) {
+    console.error('discover 오류:', err);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`✅ PPlaying 서버 실행 중: http://localhost:${PORT}`);
 });

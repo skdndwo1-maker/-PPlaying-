@@ -138,6 +138,30 @@
   }
   #other-industry-input::placeholder { color: #b89860; }
 
+  /* SEARCH MODE TOGGLE */
+  .search-mode-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .search-mode-btn {
+    padding: 0.65rem 0.75rem;
+    border: 0.5px solid rgba(0,0,0,0.12); border-radius: 10px;
+    background: var(--white); color: var(--mid);
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    font-size: 0.82rem; font-weight: 500; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .search-mode-btn:hover { border-color: var(--black); color: var(--black); }
+  .search-mode-btn.active {
+    background: var(--black); color: var(--white); border-color: var(--black);
+  }
+  .search-mode-btn.active.discover {
+    background: var(--gold); color: #fff; border-color: var(--gold);
+  }
+
+  .search-btn-row { display: grid; gap: 0.5rem; grid-template-columns: 1fr; }
+  .search-btn-row.mode-analyze #discover-btn { display: none; }
+  .search-btn-row.mode-discover #search-btn { display: none; }
   .search-btn {
     width: 100%; padding: 0.95rem;
     background: var(--black); color: var(--white);
@@ -148,6 +172,79 @@
   }
   .search-btn:hover { opacity: 0.85; transform: translateY(-1px); }
   .search-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .search-btn.discover-btn {
+    background: var(--gold); color: #fff;
+  }
+  .search-btn.discover-btn:hover { opacity: 0.88; }
+
+  /* DISCOVER RESULTS */
+  #discover-panel {
+    display: none; width: 100%; max-width: var(--max-w);
+    margin-top: 2rem; padding-top: 0.5rem;
+  }
+  #discover-panel.visible { display: block; animation: fadeUp 0.4s ease both; }
+  .discover-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 1rem; margin-bottom: 1.25rem;
+    padding-bottom: 1rem; border-bottom: 0.5px solid var(--light);
+  }
+  .discover-title { font-size: 1.1rem; font-weight: 600; color: var(--black); }
+  .discover-sub { font-size: 0.82rem; color: var(--mid); margin-top: 0.25rem; line-height: 1.5; }
+  .discover-note {
+    font-size: 0.72rem; color: var(--mid); background: var(--gold-light);
+    border-radius: 8px; padding: 0.5rem 0.75rem; margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+  .discover-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem;
+  }
+  @media (max-width: 720px) { .discover-grid { grid-template-columns: 1fr; } }
+  .discover-card {
+    background: var(--card); border: 0.5px solid var(--light);
+    border-radius: 14px; padding: 1.15rem 1.2rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    display: flex; flex-direction: column;
+  }
+  .discover-card:hover {
+    border-color: var(--gold); box-shadow: 0 4px 20px rgba(201,168,76,0.12);
+  }
+  .discover-card-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 0.75rem; margin-bottom: 0.75rem;
+  }
+  .discover-rank {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em;
+    color: var(--gold); background: var(--gold-light);
+    padding: 0.2rem 0.5rem; border-radius: 100px; flex-shrink: 0;
+  }
+  .discover-name { font-size: 1rem; font-weight: 600; color: var(--black); line-height: 1.3; }
+  .discover-meta { font-size: 0.72rem; color: var(--mid); margin-top: 0.2rem; }
+  .discover-field { margin-bottom: 0.65rem; }
+  .discover-field:last-child { margin-bottom: 0; }
+  .discover-field-label {
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 0.2rem;
+  }
+  .discover-field-val { font-size: 0.8rem; color: #444; line-height: 1.55; }
+  .discover-why {
+    margin-top: 0.75rem; padding-top: 0.75rem;
+    border-top: 0.5px solid var(--light);
+    font-size: 0.75rem; color: var(--mid); line-height: 1.5;
+  }
+  .discover-why strong { color: var(--black); font-weight: 500; }
+  .discover-card-footer {
+    display: flex; justify-content: flex-end; align-items: center;
+    margin-top: auto; padding-top: 0.85rem;
+  }
+  .discover-analyze-btn {
+    font-size: 0.72rem; font-weight: 500; padding: 0.42rem 0.9rem;
+    background: var(--black); color: var(--white);
+    border: none; border-radius: 100px; cursor: pointer;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    transition: opacity 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .discover-analyze-btn:hover { opacity: 0.82; transform: translateY(-1px); }
 
   .quick-examples { margin-top: 1.5rem; text-align: center; }
   .quick-label { font-size: 0.72rem; color: var(--mid); margin-bottom: 0.6rem; letter-spacing: 0.03em; }
@@ -643,9 +740,14 @@
   <div class="search-page-inner">
   <div class="search-eyebrow">Brand Intelligence Search</div>
   <h1 class="search-title">브랜드의 <em>모든 것</em>을<br>단 하나의 검색으로</h1>
-  <p class="search-subtitle">브랜드명을 입력하고 산업군을 선택하면 AI가 심층 분석 리포트를 생성합니다</p>
+  <p class="search-subtitle" id="search-subtitle">브랜드명을 입력하고 산업군을 선택하면 AI가 심층 분석 리포트를 생성합니다</p>
 
   <div class="search-box">
+    <div class="search-mode-row">
+      <button type="button" class="search-mode-btn active" id="mode-analyze" onclick="setSearchMode('analyze')">브랜드 분석</button>
+      <button type="button" class="search-mode-btn" id="mode-discover" onclick="setSearchMode('discover')">브랜드 검색</button>
+    </div>
+
     <div class="input-row">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
       <input id="brand-input" type="text" placeholder="브랜드명을 입력하세요 (예: 나이키, 삼성, 샤넬...)" />
@@ -674,10 +776,27 @@
       </div>
     </div>
 
-    <button class="search-btn" id="search-btn" onclick="startSearch()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      브랜드 분석 시작
-    </button>
+    <div class="search-btn-row mode-analyze" id="search-btn-row">
+      <button class="search-btn" id="search-btn" onclick="startSearch()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        브랜드 분석 시작
+      </button>
+      <button class="search-btn discover-btn" id="discover-btn" onclick="startDiscover()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        브랜드 검색
+      </button>
+    </div>
+  </div>
+
+  <div id="discover-panel">
+    <div class="discover-header">
+      <div>
+        <div class="discover-title" id="discover-title">브랜드 추천 결과</div>
+        <div class="discover-sub" id="discover-sub"></div>
+      </div>
+    </div>
+    <div class="discover-note">AI 추천 목록입니다. 실제 트렌드·브랜드 정보는 참고용으로 확인해 주세요.</div>
+    <div class="discover-grid" id="discover-grid"></div>
   </div>
 
   <div class="quick-examples">
@@ -856,6 +975,13 @@ if (sessionStorage.getItem('pp_auth') === 'true') {
 }
 
 let selectedIndustry = '전체';
+let searchMode = 'analyze';
+const discoverLoadingMessages = [
+  'AI가 브랜드 후보를 탐색하는 중...',
+  '산업군별 트렌드를 비교하는 중...',
+  '브랜딩 철학을 정리하는 중...',
+  'Top 10 리스트를 구성하는 중...'
+];
 const loadingMessages = [
   'AI가 브랜드 데이터를 수집하는 중...',
   '재무 정보를 분석하는 중...',
@@ -884,8 +1010,157 @@ document.getElementById('industry-chips').addEventListener('click', e => {
 
 // Enter key
 document.getElementById('brand-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') startSearch();
+  if (e.key === 'Enter') {
+    if (searchMode === 'discover') startDiscover();
+    else startSearch();
+  }
 });
+
+function setSearchMode(mode) {
+  searchMode = mode;
+  const input = document.getElementById('brand-input');
+  const subtitle = document.getElementById('search-subtitle');
+  const btnAnalyze = document.getElementById('mode-analyze');
+  const btnDiscover = document.getElementById('mode-discover');
+  const btnRow = document.getElementById('search-btn-row');
+
+  btnAnalyze.classList.toggle('active', mode === 'analyze');
+  btnDiscover.classList.toggle('active', mode === 'discover');
+  btnDiscover.classList.toggle('discover', mode === 'discover');
+  btnRow.classList.toggle('mode-analyze', mode === 'analyze');
+  btnRow.classList.toggle('mode-discover', mode === 'discover');
+
+  if (mode === 'discover') {
+    input.placeholder = '찾고 싶은 브랜드를 묘사해 주세요 (예: 요즘 패션에서 브랜딩 잘하는 회사)';
+    subtitle.textContent = '브랜드명을 모를 때 AI가 산업군 기준 Top 10 후보를 추천합니다';
+  } else {
+    input.placeholder = '브랜드명을 입력하세요 (예: 나이키, 삼성, 샤넬...)';
+    subtitle.textContent = '브랜드명을 입력하고 산업군을 선택하면 AI가 심층 분석 리포트를 생성합니다';
+  }
+}
+
+function setIndustryForSearch(industry) {
+  if (!industry || industry === '전체') {
+    document.querySelectorAll('.industry-chip').forEach(c => c.classList.remove('active'));
+    document.querySelector('.industry-chip[data-val="전체"]')?.classList.add('active');
+    selectedIndustry = '전체';
+    document.getElementById('other-input-wrap').style.display = 'none';
+    document.getElementById('other-industry-input').value = '';
+    return;
+  }
+
+  const chips = Array.from(document.querySelectorAll('.industry-chip'));
+  let matched = chips.find(c => c.dataset.val === industry);
+
+  if (!matched) {
+    matched = chips.find(c => c.dataset.val !== '기타' && (
+      industry.includes(c.dataset.val) || c.dataset.val.includes(industry)
+    ));
+  }
+
+  chips.forEach(c => c.classList.remove('active'));
+
+  if (matched && matched.dataset.val !== '기타') {
+    matched.classList.add('active');
+    selectedIndustry = matched.dataset.val;
+    document.getElementById('other-input-wrap').style.display = 'none';
+    document.getElementById('other-industry-input').value = '';
+  } else {
+    const other = document.querySelector('.industry-chip[data-val="기타"]');
+    other?.classList.add('active');
+    selectedIndustry = industry;
+    document.getElementById('other-input-wrap').style.display = 'block';
+    document.getElementById('other-industry-input').value = industry;
+  }
+}
+
+function analyzeFromDiscover(idx) {
+  const b = (window.__discoverBrands || [])[idx];
+  if (!b) return;
+  const industry = b.industry || selectedIndustry;
+  document.getElementById('brand-input').value = b.brand_name || '';
+  setIndustryForSearch(industry);
+  startSearch(b.brand_name, industry);
+}
+
+async function startDiscover() {
+  let query = document.getElementById('brand-input').value.trim();
+  if (!query) { document.getElementById('brand-input').focus(); return; }
+
+  let industry = selectedIndustry;
+  if (selectedIndustry === '기타') {
+    const custom = document.getElementById('other-industry-input').value.trim();
+    if (!custom) { document.getElementById('other-industry-input').focus(); return; }
+    industry = custom;
+  }
+
+  document.getElementById('result-page').style.display = 'none';
+  document.getElementById('discover-panel').classList.remove('visible');
+  document.getElementById('discover-grid').innerHTML = '';
+
+  const overlay = document.getElementById('loading-overlay');
+  overlay.style.display = 'flex';
+  const statusEl = document.getElementById('loading-status');
+  statusEl.textContent = discoverLoadingMessages[0];
+  let msgIdx = 0;
+  const msgInterval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % discoverLoadingMessages.length;
+    statusEl.textContent = discoverLoadingMessages[msgIdx];
+  }, 700);
+
+  try {
+    const res = await fetch('/api/discover', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, industry })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    renderDiscoverResults(data, query, industry);
+  } catch (err) {
+    alert(err.message || '브랜드 검색 중 오류가 발생했습니다.');
+  } finally {
+    clearInterval(msgInterval);
+    overlay.style.display = 'none';
+  }
+}
+
+function renderDiscoverResults(data, query, industry) {
+  window.__discoverBrands = data.brands || [];
+  const panel = document.getElementById('discover-panel');
+  document.getElementById('discover-title').textContent = '브랜드 추천 Top ' + window.__discoverBrands.length;
+  document.getElementById('discover-sub').textContent =
+    (data.query_summary || query) + (industry && industry !== '전체' ? ` · ${industry}` : '');
+
+  const grid = document.getElementById('discover-grid');
+  grid.innerHTML = window.__discoverBrands.map((b, i) => `
+    <div class="discover-card">
+      <div class="discover-card-top">
+        <div>
+          <div class="discover-name">${b.brand_name || ''}</div>
+          <div class="discover-meta">${[b.country, b.industry].filter(Boolean).join(' · ')}</div>
+        </div>
+        <div class="discover-rank">#${b.rank || i + 1}</div>
+      </div>
+      <div class="discover-field">
+        <div class="discover-field-label">브랜딩 철학</div>
+        <div class="discover-field-val">${b.branding_philosophy || ''}</div>
+      </div>
+      <div class="discover-field">
+        <div class="discover-field-label">사업 구조</div>
+        <div class="discover-field-val">${b.business_structure || ''}</div>
+      </div>
+      ${b.why_notable ? `<div class="discover-why"><strong>추천 이유</strong> · ${b.why_notable}</div>` : ''}
+      <div class="discover-card-footer">
+        <button type="button" class="discover-analyze-btn" onclick="analyzeFromDiscover(${i})">브랜드 분석 시작</button>
+      </div>
+    </div>
+  `).join('');
+
+  panel.classList.add('visible');
+  document.getElementById('search-page').classList.add('has-result');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 function quickSearch(brand, industry) {
   document.getElementById('brand-input').value = brand;
@@ -899,6 +1174,7 @@ function quickSearch(brand, industry) {
 
 function goBack() {
   document.getElementById('result-page').style.display = 'none';
+  document.getElementById('discover-panel').classList.remove('visible');
   document.getElementById('search-page').classList.remove('has-result');
   document.getElementById('other-input-wrap').style.display = 'none';
   document.getElementById('other-industry-input').value = '';
@@ -908,17 +1184,26 @@ function goBack() {
   window.scrollTo(0, 0);
 }
 
-async function startSearch() {
-  const brand = document.getElementById('brand-input').value.trim();
+async function startSearch(brandOverride, industryOverride) {
+  const brand = (brandOverride || document.getElementById('brand-input').value).trim();
   if (!brand) { document.getElementById('brand-input').focus(); return; }
-  if (selectedIndustry === '기타') {
+
+  if (industryOverride) {
+    setIndustryForSearch(industryOverride);
+  } else if (selectedIndustry === '기타') {
     const custom = document.getElementById('other-industry-input').value.trim();
     if (!custom) { document.getElementById('other-industry-input').focus(); return; }
     selectedIndustry = custom;
   }
 
+  document.getElementById('brand-input').value = brand;
+
   // Hide result if re-searching
   document.getElementById('result-page').style.display = 'none';
+  document.getElementById('discover-panel').classList.remove('visible');
+  document.getElementById('deep-page').style.display = 'none';
+  document.getElementById('detail-page').style.display = 'none';
+  document.getElementById('related-page').style.display = 'none';
 
   // Show loading
   const overlay = document.getElementById('loading-overlay');
