@@ -23,7 +23,8 @@
     --surface: #f2f1ee;
     --max-w: 1100px;
   }
-  html, body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--white); color: var(--black); min-height: 100vh; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--white); color: var(--black); min-height: 100vh; -webkit-print-color-adjust: exact; print-color-adjust: exact; overflow-x: hidden; max-width: 100%; }
+  img, svg, video, canvas { max-width: 100%; height: auto; }
 
   /* NAV */
   nav {
@@ -225,7 +226,6 @@
   .discover-grid {
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem;
   }
-  @media (max-width: 720px) { .discover-grid { grid-template-columns: 1fr; } }
   .discover-card {
     background: var(--card); border: 0.5px solid var(--light);
     border-radius: 14px; padding: 1.15rem 1.2rem;
@@ -312,6 +312,7 @@
   }
   .result-brand-name { font-family: 'Pretendard', -apple-system, sans-serif; font-size: 1.8rem; font-weight: 500; letter-spacing: -0.02em; }
   .result-brand-sub { font-size: 0.82rem; color: var(--mid); margin-top: 0.25rem; }
+  .result-header-actions { display: flex; gap: 0.6rem; align-items: center; flex-shrink: 0; }
   .result-chips { display: flex; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap; }
   .r-chip { font-size: 0.7rem; font-weight: 500; padding: 0.25rem 0.65rem; border-radius: 100px; }
   .chip-industry { background: #e8f0fe; color: #1a56db; }
@@ -370,7 +371,7 @@
   .structure-item:last-child { border-bottom: none; }
   .structure-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); margin-top: 0.35rem; flex-shrink: 0; }
   .structure-key { font-size: 0.78rem; font-weight: 500; color: var(--black); min-width: 90px; }
-  .structure-val { font-size: 0.8rem; color: var(--mid); line-height: 1.5; }
+  .structure-val { font-size: 0.8rem; color: var(--mid); line-height: 1.5; min-width: 0; word-break: break-word; }
 
   /* RELATED BRANDS */
   .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
@@ -628,9 +629,11 @@
     display: none; padding: 0 2rem 4rem; max-width: var(--max-w); margin: 0 auto;
   }
   .subpage-header {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 1rem;
     padding: 2rem 0 1.5rem; border-bottom: 0.5px solid var(--light); margin-bottom: 2rem;
   }
+  .subpage-header > div:first-child { min-width: 0; flex: 1; }
   .subpage-title { font-family: 'Pretendard', -apple-system, sans-serif; font-size: 1.4rem; font-weight: 500; letter-spacing: -0.02em; }
   .subpage-sub { font-size: 0.8rem; color: var(--mid); margin-top: 0.25rem; }
   .back-to-result {
@@ -734,6 +737,209 @@
   }
   .gate-btn:hover { opacity: 0.8; }
   .gate-error { font-size: 0.78rem; color: #e53e3e; text-align: center; margin-top: 0.75rem; display: none; }
+
+  /* ── MOBILE RESPONSIVE (PC 레이아웃 유지, 768px 이하 최적화) ── */
+  @media (max-width: 768px) {
+    nav { padding: 0 1rem; }
+    .nav-inner { padding: 0.75rem 0; gap: 0.5rem; }
+    .nav-tag { display: none; }
+    .nav-left { min-width: 0; flex: 1; gap: 0.45rem; }
+    .nav-back-btn { padding: 0.32rem 0.6rem; font-size: 0.72rem; flex-shrink: 0; }
+    #nav-back-label { max-width: 5.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .logo { font-size: 1.05rem; white-space: nowrap; }
+
+    #search-page,
+    #search-page.has-result { padding: 1.25rem 1rem 1.5rem; }
+    .search-box { padding: 1.1rem; border-radius: 16px; }
+    .search-title { font-size: clamp(1.65rem, 7vw, 2.2rem); }
+    .search-subtitle { font-size: 0.84rem; margin-bottom: 1.5rem; padding: 0 0.25rem; }
+    .input-row { padding: 0.8rem 0.9rem; }
+    .input-row input { font-size: 16px; min-width: 0; }
+    .industry-chips { gap: 0.35rem; margin-bottom: 1rem; }
+    .industry-chip { font-size: 0.74rem; padding: 0.38rem 0.75rem; }
+
+    .discover-grid { grid-template-columns: 1fr; }
+    .discover-header { flex-direction: column; align-items: flex-start; }
+    .discover-prompt-text { font-size: 0.8rem; word-break: break-word; overflow-wrap: anywhere; }
+
+    #result-page,
+    #detail-page,
+    #related-page,
+    #deep-page { padding: 0 1rem 2.5rem; }
+
+    .result-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+    }
+    .result-brand-info {
+      align-items: flex-start;
+      gap: 0.85rem;
+      min-width: 0;
+      width: 100%;
+    }
+    .result-brand-info > div { min-width: 0; flex: 1; }
+    .brand-avatar { width: 48px; height: 48px; font-size: 1.15rem; border-radius: 12px; }
+    .result-brand-name {
+      font-size: clamp(1.25rem, 5.5vw, 1.55rem);
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.25;
+    }
+    .result-brand-sub { word-break: break-word; }
+    .result-header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      width: 100%;
+    }
+    .result-header-actions .deep-btn,
+    .result-header-actions .pdf-btn,
+    .result-header-actions .dl-wrap { flex: 1 1 calc(50% - 0.25rem); min-width: 0; }
+    .result-header-actions .deep-btn,
+    .result-header-actions .pdf-btn {
+      justify-content: center;
+      padding-left: 0.65rem;
+      padding-right: 0.65rem;
+      font-size: 0.74rem;
+    }
+    .result-header-actions .dl-wrap { flex: 1 1 100%; }
+    .result-header-actions .dl-wrap .pdf-btn { width: 100%; }
+
+    .metrics-row { grid-template-columns: repeat(2, 1fr); gap: 0.65rem; margin-bottom: 1.25rem; }
+    .metric-card { padding: 0.85rem 0.9rem; min-width: 0; }
+    .metric-val {
+      font-size: clamp(1rem, 4.5vw, 1.25rem);
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.2;
+    }
+    .metric-sub { word-break: break-word; }
+
+    .content-grid,
+    .content-grid.three,
+    .content-grid.brand-related { grid-template-columns: 1fr; gap: 0.85rem; }
+    .content-grid.brand-related .related-grid { grid-template-columns: 1fr; }
+
+    .info-card { padding: 1.1rem; border-radius: 14px; }
+    .info-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
+    .ir-val {
+      max-width: 100%;
+      text-align: left;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .structure-item {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.45rem;
+    }
+    .structure-item > div[style*="display:flex"] { min-width: 0; }
+    .structure-key { min-width: 0; }
+    .structure-val { word-break: break-word; overflow-wrap: anywhere; }
+    .detail-btn { align-self: flex-start; }
+
+    .related-grid { grid-template-columns: 1fr; }
+    .related-name, .related-sub { word-break: break-word; overflow-wrap: anywhere; }
+
+    .contact-grid { grid-template-columns: 1fr; }
+    .contact-val, .contact-item a { word-break: break-all; overflow-wrap: anywhere; }
+
+    .story-text, .summary-card, .discover-field-val, .history-section p,
+    .tl-card-desc, .portfolio-item-body, .layer-desc, .layer-brands {
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .brand-layer { padding: 0.85rem 0.9rem; }
+
+    .subpage-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.85rem;
+      padding: 1.25rem 0 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .subpage-title {
+      font-size: clamp(1.1rem, 4.8vw, 1.3rem);
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.3;
+    }
+    .back-to-result { align-self: flex-start; }
+
+    .deep-actions {
+      flex-wrap: wrap;
+      width: 100%;
+      gap: 0.45rem;
+    }
+    .deep-actions .dl-wrap,
+    .deep-actions .deep-action-btn,
+    .deep-actions .back-to-result { flex: 1 1 calc(50% - 0.25rem); min-width: 0; }
+    .deep-actions .dl-wrap { flex: 1 1 100%; }
+    .deep-actions .dl-wrap .deep-action-btn { width: 100%; justify-content: center; }
+    .deep-actions .deep-action-btn,
+    .deep-actions .back-to-result {
+      justify-content: center;
+      font-size: 0.72rem;
+      padding: 0.48rem 0.75rem;
+      white-space: normal;
+      text-align: center;
+    }
+    .deep-actions .back-to-result { flex: 1 1 100%; }
+
+    .deep-tabs {
+      margin-bottom: 1.25rem;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .deep-tabs::-webkit-scrollbar { display: none; }
+    .deep-tab { padding: 0.65rem 0.85rem; font-size: 0.78rem; }
+
+    .portfolio-cols { grid-template-columns: 1fr; }
+    .case-list { grid-template-columns: 1fr; }
+    .link-list { grid-template-columns: 1fr; }
+
+    .article-item {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.65rem;
+    }
+    .article-link { align-self: flex-start; white-space: normal; }
+    .link-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .link-go { align-self: flex-start; }
+
+    .tl-row { flex-wrap: wrap; }
+    .tl-year { width: 56px; font-size: 0.68rem; padding-right: 6px; }
+    .tl-right { min-width: 0; flex: 1; }
+
+    .subpage-loading { padding: 2.5rem 1rem; }
+    .loading-bar-track { width: min(240px, 80vw); }
+
+    .dl-menu {
+      left: 0;
+      right: 0;
+      min-width: 0;
+    }
+
+    #password-gate { padding: 1.25rem; }
+    .gate-box { padding: 1.5rem; }
+  }
+
+  @media (max-width: 380px) {
+    .metrics-row { grid-template-columns: 1fr; }
+    .search-mode-row { grid-template-columns: 1fr; }
+    .result-header-actions .deep-btn,
+    .result-header-actions .pdf-btn { flex: 1 1 100%; }
+  }
 </style>
 </head>
 <body>
@@ -873,7 +1079,7 @@
         <div class="result-chips" id="result-chips"></div>
       </div>
     </div>
-    <div style="display:flex;gap:0.6rem;align-items:center;">
+    <div class="result-header-actions">
       <button class="deep-btn" onclick="openDeep()">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
         심층 분석
